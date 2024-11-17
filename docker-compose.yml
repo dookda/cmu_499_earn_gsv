@@ -1,29 +1,26 @@
+version: '3.8'
+
 services:
+  postgis:
+    image: postgis/postgis:latest
+    container_name: gsv_postgis
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: gsv2svfnewnew
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 1234
+    volumes:
+      - ./postgis:/docker-entrypoint-initdb.d
+
   python:
-    build:
-      context: ./python/
-      dockerfile: Dockerfile
+    image: giswqs/segment-geospatial:latest
     container_name: gsv_python
     working_dir: /app
-    user: root
     depends_on:
       - postgis
     ports:
       - "5100:5000"
     volumes:
       - ./python:/app
-
-  postgis:
-    image: postgis/postgis:latest
-    container_name: gsv_postgis
-    environment:
-      - POSTGRES_DB=gis
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgis_data:/var/lib/postgresql/data
-
-volumes:
-  postgis_data:
+    command: /bin/bash -c "pip install -r requirements.txt && python app.py"
