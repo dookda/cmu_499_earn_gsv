@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>maptvf</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; 
+             style-src 'self' 'unsafe-inline' https://api.waqi.info https://cdn.jsdelivr.net https://fonts.googleapis.com https://unpkg.com; 
+             style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://unpkg.com; 
+             img-src 'self' https://unpkg.com https://tiles.stadiamaps.com https://mt1.google.com https://server.arcgisonline.com https://api.mapbox.com data:; 
+             script-src 'self' 'nonce-random123' https://cdnjs.cloudflare.com/ajax/libs/echarts/5.3.0/echarts.min.js https://unpkg.com https://cdn.jsdelivr.net https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js https://cdn.jsdelivr.net/npm/chart.js; 
+             connect-src 'self' https://api.waqi.info;">
+    <link rel="icon" href="/gsv/imggolo/logo" type="image/x-icon">
+    <!-- Link to Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.3.0/echarts.min.js"></script>
+    <style>
+        body {
+            font-family: "Roboto", sans-serif;
+
+        }
+
+        .pin {
+            animation-name: bounce;
+            animation-duration: 2s;
+            width: 30px;
+            height: 30px;
+            border-radius: 50% 50% 50% 0;
+            background: #33b63e;
+            position: absolute;
+            transform: rotate(-45deg);
+            left: 50%;
+            top: 50%;
+            margin: -20px 0 0 -20px;
+        }
+
+        .pin:after {
+            content: '';
+            width: 14px;
+            height: 14px;
+            margin: 8px 0 0 8px;
+            background: #ffe388;
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        .pulse {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 50%;
+            height: 14px;
+            width: 14px;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            margin: 11px 0px 0px -12px;
+            transform: rotateX(55deg);
+            z-index: -2;
+        }
+
+        .pulse:after {
+            content: "";
+            border-radius: 50%;
+            height: 40px;
+            width: 40px;
+            position: absolute;
+            margin: -13px 0 0 -13px;
+            animation: pulsate 1s ease-out infinite;
+            opacity: 0;
+            box-shadow: 0 0 1px 2px #33b63e;
+        }
+
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1000;
+            display: none;
+        }
+
+        .loading-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, 50%);
+            color: rgb(5, 5, 5);
+            font-weight: bold;
+        }
+
+        @keyframes pulsate {
+            0% {
+                transform: scale(0.1, 0.1);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1.2, 1.2);
+            }
+        }
+
+        @keyframes bounce {
+            0% {
+                transform: translateY(-2000px) rotate(-45deg);
+            }
+
+            60% {
+                transform: translateY(30px) rotate(-45deg);
+            }
+
+            80% {
+                transform: translateY(-10px) rotate(-45deg);
+            }
+
+            100% {
+                transform: translateY(0) rotate(-45deg);
+            }
+        }
+
+        .image-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            /* Adjust the gap as needed */
+        }
+
+        .image-container img {
+            display: block;
+        }
+
+        /* #echarts-container {
+            width: 250px;
+            height: 200px;
+            position: absolute;
+            bottom: 20px;
+            left: 5px;
+            z-index: 1000;
+
+        }
+
+        @media (max-width: 768px) {
+            #echarts-container {
+                width: 150px;
+                height: 100px;
+                bottom: 5px;
+                left: 0;
+            }
+        } */
+
+        .legend-container {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 5px;
+            border-radius: 5px;
+            z-index: 1000;
+            font-size: 12px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            box-sizing: border-box;
+        }
+
+        .legend-container div {
+            display: flex;
+            align-items: center;
+            margin-bottom: 3px;
+            flex-wrap: wrap;
+        }
+
+        .legend-container span {
+            display: inline-block;
+            width: 20px;
+            height: 15px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+        }
+
+        @media (max-width: 600px) {
+            .legend-container {
+                font-size: 10px;
+                padding: 3px;
+                right: 10px;
+                bottom: 5px;
+            }
+
+            .legend-container span {
+                width: 12px;
+                height: 12px;
+                margin-right: 8px;
+            }
+        }
+
+        .leaflet-popup-content {
+            width: auto;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .image-container {
+            margin-bottom: 5px;
+        }
+
+        #close-popup:hover {
+            background-color: #d43f3f;
+
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <!-- Navbar -->
+    <nav class="bg-gray-800 text-white p-4 rounded-lg shadow-lg transition-all duration-300">
+        <div class="container mx-auto flex justify-between items-center relative rounded-lg">
+            <a href="#">
+                <img src="/gsv/imggolo/logo" alt="Deep Learning" style="width: 40px; height: 40px;">
+            </a>
+            <button id="menu-toggle"
+                class="block lg:hidden focus:outline-none transition-transform transform hover:scale-105">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7">
+                    </path>
+                </svg>
+            </button>
+            <ul id="menu" class="hidden lg:flex space-x-4">
+                <li><a href="/gsv/homenew" target="_self"
+                        class="hover:text-gray-300 transition-colors duration-200">Home</a></li>
+                <li><a href="/gsv/manual" target="_self"
+                        class="hover:text-gray-300 transition-colors duration-200">Manual</a>
+                </li>
+                <li><a href="/gsv/sumdeep" target="_self"
+                        class="hover:text-gray-300 transition-colors duration-200">Back</a></li>
+            </ul>
+        </div>
+        <div id="dropdown-menu"
+            class="hidden lg:hidden bg-gray-800 text-white absolute right-0 mt-2 shadow-lg rounded-lg overflow-hidden z-50">
+            <a href="/gsv/homenew" class="block p-2 hover:bg-gray-700">Home</a>
+            <a href="/gsv/manual" class="block p-2 hover:bg-gray-700">Manual</a>
+            <a href="/gsv/sumdeep" class="block p-2 hover:bg-gray-700">Back</a>
+        </div>
+    </nav>
+
+
+
+    <!-- Container -->
+    <div class="container mx-auto p-4">
+        <h1 class="text-4xl font-bold mb-4 text-center">การจำแนกข้อมูลสัดส่วนการมองเห็นต้นไม้ Tree View Factor (TVF)
+        </h1>
+        <p class="text-gray-700 leading-relaxed text-center">
+            Classifying data from Google Street View (GSV).
+        </p>
+
+
+        <!-- Map Container -->
+        <div id="map" style="height: 600px; ">
+            <div id="legend-container" class="legend-container">
+                <center>
+                    <h6 class="text-lg font-semibold mb-2">TVF</h6>
+                </center>
+                <div><span style="background-color:#B22222;"></span> 0-10%</div>
+                <div><span style="background-color:#FF4500;"></span> 10-20%</div>
+                <div><span style="background-color:#FF7F00;"></span> 20-30%</div>
+                <div><span style="background-color:#ffbf49;"></span> 30-40%</div>
+                <div><span style="background-color:#FFFF00;"></span> 40-50%</div>
+                <div><span style="background-color:#FFFF99	;"></span> 50-60%</div>
+                <div><span style="background-color:#BDFCC9;"></span> 60-70%</div>
+                <div><span style="background-color:#7FFF00;"></span> 70-80%</div>
+                <div><span style="background-color:#00CC00;"></span> 80-90%</div>
+                <div><span style="background-color:#006400;"></span> 90-100%</div>
+            </div>
+        </div>
+
+        <!-- Loading indicator container -->
+        <div class="loading" id="loading">
+            <div class="pin"></div>
+            <div class="pulse"></div>
+            <span class="loading-text">loading...</span>
+        </div>
+        <!-- Add this HTML for the popup container -->
+        <div id="no-data-popup"
+            style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: linear-gradient(135deg, #f8f9fa, #e9ecef); border: 1px solid #ddd; padding: 20px; border-radius: 12px; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15); z-index: 1000; text-align: center; max-width: 300px;">
+            <p style="margin-bottom: 15px; font-size: 16px; color: #333; font-weight: bold;">No data available for this
+                location.</p>
+            <button id="close-popup"
+                style="background-color: #ff4d4d; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-size: 14px; transition: background-color 0.3s ease; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);">
+                Close
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white p-4 rounded-t-lg">
+        <div class="container mx-auto text-center rounded-t-lg">
+            &copy; 2024 by Kanyapat.
+        </div>
+    </footer>
+
+
+    <!-- JavaScript with nonce -->
+    <script nonce="random123" src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.3.0/echarts.min.js"></script>
+    <script nonce="random123" src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script nonce="random123" src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script nonce="random123" src="https://cdn.jsdelivr.net/npm/echarts/dist/echarts.min.js"></script>
+
+    <script nonce="random123">
+        document.getElementById('menu-toggle').addEventListener('click', function () {
+            const menu = document.getElementById('dropdown-menu');
+            menu.classList.toggle('show');
+            menu.classList.toggle('hidden'); // Toggle visibility
+        });
+
+        // Initialize Leaflet Map
+        const map = L.map("map", {
+            center: [18.788798983151977, 98.98539497984945],
+            zoom: 13
+        });
+
+
+        const google_Terrain = L.tileLayer('https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', {
+            attribution: 'google maps'
+        });
+
+        const Esri_WorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: '&copy; <a href="https://www.esri.com">Esri</a>'
+        });
+
+        // Add base layers to the map
+        google_Terrain.addTo(map);
+
+        // Create a layer group for the GeoJSON data
+        const geoJsonLayer = L.layerGroup();
+
+        // Load GeoJSON data and add to the layer group
+        fetch("{{ url_for('static1', filename='cm.geojson') }}")
+            .then(response => response.json())
+            .then(data => {
+                L.geoJSON(data, {
+                    style: function (feature) {
+                        return {
+                            color: '#3388ff', // Adjust color to a nice blue
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 0.2, // Add some transparency to the fill
+                            fillColor: '#3388ff' // Matching fill color
+                        };
+                    },
+                    onEachFeature: function (feature, layer) {
+                        if (feature.properties && feature.properties.NAME_1) {
+                            layer.bindPopup(feature.properties.NAME_1); // Display feature name on click
+                        }
+                    }
+                }).addTo(geoJsonLayer);
+            });
+
+        // Define overlay map for control
+        const overlayMap = {
+            "ขอบเขตเทศบาลนครเชียงใหม่": geoJsonLayer
+        };
+
+        // Define base map for control
+        const baseMap = {
+            "แผนที่จาก Google Terrain": google_Terrain,
+            "แผนที่ Esri Imagery": Esri_WorldImagery
+        };
+
+        // Add layers control to the map
+        L.control.layers(baseMap, overlayMap).addTo(map);
+
+        // Click event handler on the map
+        map.on("click", (e) => {
+            const loadingIndicator = document.getElementById('loading');
+            loadingIndicator.style.display = 'block';
+
+            // Set loading indicator position based on click event
+            loadingIndicator.style.left = `${e.originalEvent.pageX}px`;
+            loadingIndicator.style.top = `${e.originalEvent.pageY}px`;
+
+            // Define functions to fetch data from APIs
+            const fetchTemperature = () => {
+                return axios.get(`https://api.waqi.info/feed/geo:${e.latlng.lat};${e.latlng.lng}/?token=41e3eb9e02e067412a86e56b40c21f420313627a`);
+            };
+
+            const fetchDataByLatLng = () => {
+                return axios.get(`/gsv/getbylatlng/${e.latlng.lat}/${e.latlng.lng}/`);
+            };
+
+            // Use Promise.all to wait for all API calls to complete
+            Promise.all([
+                fetchTemperature(),
+                fetchDataByLatLng()
+            ])
+                .then((responses) => {
+                    const temperatureResponse = responses[0];
+                    const dataByLatLngResponse = responses[1];
+
+                    loadingIndicator.style.display = 'none';
+
+                    // Check if temperature data exists and extract temperature
+                    let temperature = '';
+                    if (temperatureResponse.data.data && temperatureResponse.data.data.iaqi && temperatureResponse.data.data.iaqi.t) {
+                        temperature = temperatureResponse.data.data.iaqi.t.v;
+                    } else {
+                        console.error('Temperature data not available.');
+                    }
+
+                    const treeValue = ((dataByLatLngResponse.data.tree / 321268) * 100).toFixed(2);
+
+                    let color;
+
+                    // Determine color based on treeValue range
+                    if (treeValue >= 0 && treeValue < 10) {
+                        color = '#B22222'; // 0-10
+                    } else if (treeValue >= 10 && treeValue < 20) {
+                        color = '#FF4500'; // 10-20
+                    } else if (treeValue >= 20 && treeValue < 30) {
+                        color = '#FF7F00'; // 20-30
+                    } else if (treeValue >= 30 && treeValue < 40) {
+                        color = '#ffbf49'; // 30-40
+                    } else if (treeValue >= 40 && treeValue < 50) {
+                        color = '#FFFF00'; // 40-50
+                    } else if (treeValue >= 50 && treeValue < 60) {
+                        color = '#FFFF99'; // 50-60
+                    } else if (treeValue >= 60 && treeValue < 70) {
+                        color = '#BDFCC9'; // 60-70
+                    } else if (treeValue >= 70 && treeValue < 80) {
+                        color = '#7FFF00'; // 70-80
+                    } else if (treeValue >= 80 && treeValue < 90) {
+                        color = '#00CC00'; // 80-90
+                    } else if (treeValue >= 90 && treeValue <= 100) {
+                        color = '#006400'; // 90-100
+                    } else {
+                        color = '#070707'; // Default color if treeValue is out of specified range
+                    }
+
+                    console.log(`Temperature: ${temperature}`);
+                    console.log(`Color for tree value ${treeValue}: ${color}`);
+
+                    // Check if the data exists before creating the circle and popup
+                    if (dataByLatLngResponse.data) {
+                        // Initialize ECharts within the popup content
+                        const popupContent = `
+                            <b>Latitude:</b> ${e.latlng.lat}<br>
+                            <b>Longitude:</b> ${e.latlng.lng}<br>
+                            <b>Temperature:</b> ${temperature}&deg;C<br>
+                            <b>SVF:</b> ${(dataByLatLngResponse.data.sky / 321268 * 100).toFixed(2)}%<br>
+                            <b>BVF:</b> ${(dataByLatLngResponse.data.building / 321268 * 100).toFixed(2)}%<br>
+                            <b>TVF:</b> ${treeValue}%<br>
+                            <div class="image-container">
+                            <img src="data:image/png;base64,${dataByLatLngResponse.data.fe}" alt="" width="100">
+                            <img src="data:image/png;base64,${dataByLatLngResponse.data.fe_cls}" alt="" width="100">
+                            </div>
+                            <div id="echarts-container" style="width: 100%; height: 150px;"></div>
+                        `;
+
+                        // If data exists, create the circle and popup with data
+                        const circle = L.circle([e.latlng.lat, e.latlng.lng], { radius: 40, color: color }).addTo(map);
+                        const popup = L.popup({
+                            minWidth: 210, // Optional: Set a minimum width for the popup
+                            maxWidth: 400, // Optional: Set a maximum width for the popup
+                        }).setContent(popupContent);
+
+                        circle.bindPopup(popup);
+
+                        // Open the popup without allowing vertical scrolling
+                        circle.openPopup();
+
+                        // Prevent scrolling in the popup
+                        const popupContainer = popup.getElement();
+                        if (popupContainer) {
+                            popupContainer.style.overflowY = 'hidden';
+                        }
+
+
+                        // Initialize ECharts after the popup is open
+                        const echartsContainer = document.getElementById('echarts-container');
+                        const myChart = echarts.init(echartsContainer);
+
+                        // ECharts options
+                        const option = {
+                            tooltip: {
+                                trigger: 'item',
+                                formatter: '{a} <br/>{b}: {c}%',
+                            },
+                            legend: {
+                                data: ['SVF', 'BVF', 'TVF'],
+                                orient: 'horizontal',
+                                left: 'center',
+                                top: 'bottom',
+                                itemWidth: 10,
+                                itemHeight: 10,
+                                textStyle: {
+                                    fontSize: 10,
+                                    color: '#333'
+                                }
+                            },
+                            series: [
+                                {
+                                    name: 'Percentage',
+                                    type: 'pie',
+                                    radius: ['40%', '60%'],
+                                    avoidLabelOverlap: false,
+                                    label: {
+                                        show: true,
+                                        formatter: '{b}\n{c}%',
+                                        position: 'outside',
+                                        fontSize: 10,
+                                        padding: [0, 10],
+                                        overflow: 'break' // 
+                                    },
+                                    emphasis: {
+                                        label: {
+                                            show: true,
+                                            fontSize: '10',
+                                            fontWeight: 'bold',
+                                            color: '#333'
+                                        }
+                                    },
+                                    labelLine: {
+                                        show: true,
+                                        length: 6,
+                                        length2: 3
+                                    },
+                                    itemStyle: {
+                                        borderRadius: 10
+                                    },
+                                    data: [
+                                        { value: ((dataByLatLngResponse.data.sky / 321268) * 100).toFixed(2), name: 'SVF', itemStyle: { color: '#6699FF' } }, // SVF - Blue
+                                        { value: ((dataByLatLngResponse.data.building / 321268) * 100).toFixed(2), name: 'BVF', itemStyle: { color: '#FF3300' } }, // BVF - Red
+                                        { value: treeValue, name: 'TVF', itemStyle: { color: '#33CC33' } } // TVF - Green
+                                    ],
+                                    animationType: 'scale',
+                                    animationEasing: 'elasticOut',
+                                    animationDelay: (idx) => idx * 500
+                                }
+                            ],
+                            grid: {
+                                right: '10%',
+                                bottom: '10%',
+                                containLabel: true
+                            }
+                        };
+
+                        // Set ECharts option
+                        myChart.setOption(option);
+
+                        // Add responsive behavior
+                        window.addEventListener('resize', () => {
+                            myChart.resize();
+                        });
+
+                        // Resize chart on initial load for better responsiveness
+                        window.dispatchEvent(new Event('resize'));
+                    } else {
+                        const noDataPopup = document.getElementById('no-data-popup');
+                        noDataPopup.style.display = 'block';
+
+                        document.getElementById('close-popup').addEventListener('click', () => {
+                            noDataPopup.style.display = 'none';
+                        });
+                    }
+                })
+
+                .catch(error => {
+                    console.error(error);
+                    loadingIndicator.style.display = 'none'; // Hide the loading indicator
+                });
+
+        });
+    </script>
+
+</body>
+
+</html>

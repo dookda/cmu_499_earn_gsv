@@ -1,0 +1,17 @@
+Flask==3.0.3
+pandas
+requests
+scipy
+opencv-python-headless
+torch
+ultralytics
+matplotlib
+pillow
+werkzeug
+pybase64
+jsons
+talisman
+numpy
+opencv-python
+psycopg2-binary
+flask-talisman

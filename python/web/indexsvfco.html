@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>svfco</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; 
+             style-src 'self' 'unsafe-inline' https://api.waqi.info https://cdn.jsdelivr.net https://fonts.googleapis.com https://unpkg.com; 
+             style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://unpkg.com; 
+             img-src 'self' https://unpkg.com https://tiles.stadiamaps.com https://mt1.google.com https://server.arcgisonline.com https://api.mapbox.com data:; 
+             script-src 'self' 'nonce-random123' https://cdnjs.cloudflare.com/ajax/libs/echarts/5.3.0/echarts.min.js https://unpkg.com https://cdn.jsdelivr.net https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js https://cdn.jsdelivr.net/npm/chart.js; 
+             connect-src 'self' https://api.waqi.info;">
+    <link rel="icon" href="/gsv/imggolo/logo" type="image/x-icon">
+    <!-- Link to Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: "Roboto", sans-serif;
+
+        }
+
+        .legend-container {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 5px;
+            border-radius: 5px;
+            z-index: 1000;
+            font-size: 12px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            box-sizing: border-box;
+        }
+
+        .legend-container div {
+            display: flex;
+            align-items: center;
+            margin-bottom: 3px;
+            flex-wrap: wrap;
+        }
+
+        .legend-container span {
+            display: inline-block;
+            width: 20px;
+            height: 15px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+        }
+
+        @media (max-width: 600px) {
+            .legend-container {
+                font-size: 10px;
+                padding: 3px;
+                right: 10px;
+                bottom: 30px;
+            }
+
+            .legend-container span {
+                width: 12px;
+                height: 12px;
+                margin-right: 8px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .legend-container {
+                font-size: 10px;
+                padding: 3px;
+                right: 10px;
+                bottom: 30px;
+            }
+
+            .legend-container span {
+                width: 12px;
+                height: 12px;
+                margin-right: 8px;
+            }
+        }
+
+        #loading-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            text-align: center;
+            padding-top: 20%;
+            z-index: 1001;
+        }
+
+        .loader {
+            width: 48px;
+            height: 48px;
+            display: block;
+            margin: 20px auto;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        .loader::after {
+            content: '';
+            box-sizing: border-box;
+            width: 48px;
+            height: 48px;
+            left: 0;
+            bottom: 0;
+            position: absolute;
+            border-radius: 50% 50% 0;
+            border: 15px solid #65ced7;
+            transform: rotate(45deg) translate(0, 0);
+            box-sizing: border-box;
+            animation: animMarker 0.4s ease-in-out infinite alternate;
+        }
+
+        .loader::before {
+            content: '';
+            box-sizing: border-box;
+            position: absolute;
+            left: 0;
+            right: 0;
+            margin: auto;
+            top: 150%;
+            width: 24px;
+            height: 4px;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.2);
+            animation: animShadow 0.4s ease-in-out infinite alternate;
+        }
+
+        @keyframes animMarker {
+            0% {
+                transform: rotate(45deg) translate(5px, 5px);
+            }
+
+            100% {
+                transform: rotate(45deg) translate(-5px, -5px);
+            }
+        }
+
+        @keyframes animShadow {
+            0% {
+                transform: scale(0.5);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        #week-dropdown {
+            width: 100%;
+            max-width: 130px;
+            box-sizing: border-box;
+            padding: 8px;
+        }
+
+        @media (max-width: 1200px) {
+            #week-dropdown {
+                width: 60%;
+                max-width: 130px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            #week-dropdown {
+                width: 60%;
+                max-width: 130px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            #week-dropdown {
+                width: 60%;
+                max-width: 130px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            #week-dropdown {
+                width: 60%;
+                max-width: 130px;
+            }
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            /* semi-transparent background */
+            z-index: 1000;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            position: relative;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            max-width: 90%;
+            max-height: 90%;
+            overflow: auto;
+        }
+
+        .responsive-image {
+            max-width: 100%;
+            max-height: 80vh;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 0;
+            right: 0;
+            /* background: #e16d6d; */
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 3px;
+
+        }
+
+        .close-button:hover {
+            background: #ffffff;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .modal-content {
+                padding: 10px;
+            }
+
+            .close-button {
+                top: 0;
+                right: 0;
+                padding: 4px 8px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .modal-content {
+                max-width: 95%;
+                max-height: 95%;
+                padding: 5px;
+            }
+
+            .close-button {
+                top: 0;
+                right: 0;
+                padding: 3px 6px;
+                font-size: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <!-- Navbar -->
+    <nav class="bg-gray-800 text-white p-4 rounded-lg shadow-lg transition-all duration-300">
+        <div class="container mx-auto flex justify-between items-center relative rounded-lg">
+            <a href="#">
+                <img src="/gsv/imggolo/logo" alt="Deep Learning" style="width: 40px; height: 40px;">
+            </a>
+            <button id="menu-toggle" aria-label="Toggle menu"
+                class="block lg:hidden focus:outline-none transition-transform transform hover:scale-105">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7">
+                    </path>
+                </svg>
+            </button>
+            <ul id="menu" class="hidden lg:flex space-x-4">
+                <li><a href="/gsv/homenew" target="_self"
+                        class="hover:text-gray-300 transition-colors duration-200">Home</a></li>
+                <li><a href="/gsv/manual" target="_self"
+                        class="hover:text-gray-300 transition-colors duration-200">Manual</a>
+                </li>
+                <li><a href="/gsv/sumco" target="_self"
+                        class="hover:text-gray-300 transition-colors duration-200">Back</a>
+                </li>
+            </ul>
+        </div>
+        <div id="dropdown-menu"
+            class="hidden lg:hidden bg-gray-800 text-white absolute right-0 mt-2 shadow-lg rounded-lg overflow-hidden z-50">
+            <a href="/gsv/homenew" class="block p-2 hover:bg-gray-700">Home</a>
+            <a href="/gsv/manual" class="block p-2 hover:bg-gray-700">Manual</a>
+            <a href="/gsv/sumco" class="block p-2 hover:bg-gray-700">Back</a>
+        </div>
+    </nav>
+
+    <!-- Container -->
+    <div class="container mx-auto p-4">
+        <h1 class="text-4xl font-bold mb-4 text-center">Correlation Map เทศบาลนครเชียงใหม่ (SVF)
+        </h1>
+        <p class="text-gray-700 leading-relaxed text-center">สัดส่วนการมองเห็นท้องฟ้า Sky View Factor (SVF)</p>
+
+        <!-- Container for the week description button and description -->
+        <div class="week-description-container">
+            <button id="week-description-toggle" class="week-description-toggle">
+                <b>Data Week:</b>
+            </button>
+            <div id="week-description" class="week-description">
+            </div>
+        </div>
+
+        <!-- Dropdown for weeks -->
+        <div class="mb-4 text-center">
+            <select id="week-dropdown" class="p-2 border border-gray-300 rounded-md">
+                <option value="">Select Week</option>
+                <!-- Options will be populated by JavaScript -->
+            </select>
+        </div>
+
+        <!-- Map Container -->
+
+        <div id="map" style="height: 600px;">
+
+            <div id="legend-container" class="legend-container">
+                <center>
+                    <h6 class="text-lg font-semibold mb-2">SVF</h6>
+                </center>
+                <div><span style="background-color:#B22222;"></span> 0-10%</div>
+                <div><span style="background-color:#FF4500;"></span> 10-20%</div>
+                <div><span style="background-color:#FF7F00;"></span> 20-30%</div>
+                <div><span style="background-color:#ffbf49;"></span> 30-40%</div>
+                <div><span style="background-color:#FFFF00;"></span> 40-50%</div>
+                <div><span style="background-color:#ADFF2F;"></span> 50-60%</div>
+                <div><span style="background-color:#00FF00;"></span> 60-70%</div>
+                <div><span style="background-color:#00CED1;"></span> 70-80%</div>
+                <div><span style="background-color:#1E90FF;"></span> 80-90%</div>
+                <div><span style="background-color:#0000FF;"></span> 90-100%</div>
+            </div>
+            <div id="chartContainer"></div>
+
+
+        </div>
+        <div id="upload-section" class="text-center mt-4"></div>
+        <!-- <div id="upload-section" class="text-center mt-4"></div> -->
+
+        <!-- Modal Structure -->
+        <div id="data-modal"
+            style="display:none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; border: 1px solid #ccc; z-index: 1000; padding: 20px; border-radius: 10px;">
+            <button id="close-modal"
+                style="float: right; background-color: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">Close</button>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div id="loading-modal">
+        <span class="loader"></span>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white p-4 rounded-t-lg">
+        <div class="container mx-auto text-center rounded-t-lg">&copy; 2024 by Kanyapat.</div>
+    </footer>
+
+    <!-- JavaScript with nonce -->
+    <script nonce="random123" src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.3.0/echarts.min.js"></script>
+    <script nonce="random123" src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script nonce="random123" src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script nonce="random123" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script nonce="random123">
+        document.addEventListener('DOMContentLoaded', function () {
+            const menuToggle = document.getElementById('menu-toggle');
+            const menu = document.getElementById('dropdown-menu');
+
+            if (menuToggle) {
+                menuToggle.addEventListener('click', function () {
+                    menu.classList.toggle('show');
+                    menu.classList.toggle('hidden'); // Toggle visibility
+                });
+            }
+
+            var activeWeek = null;
+            var chart;
+
+            function showLoadingModal() {
+                document.getElementById('loading-modal').style.display = 'block';
+            }
+
+            function closeModal() {
+                document.getElementById('loading-modal').style.display = 'none';
+            }
+
+            function showModal(content) {
+                document.getElementById('modal-content').innerHTML = content;
+                document.getElementById('data-modal').style.display = 'block'; // Show the modal
+            }
+
+            // Add an event listener for the close button
+            document.getElementById('close-modal').addEventListener('click', function () {
+                document.getElementById('data-modal').style.display = 'none'; // Hide the modal
+            });
+
+            function getColor(skyPercent) {
+                if (skyPercent <= 10) return "#B22222";
+                if (skyPercent <= 20) return "#FF4500";
+                if (skyPercent <= 30) return "#FF7F00";
+                if (skyPercent <= 40) return "#ffbf49";
+                if (skyPercent <= 50) return "#FFFF00";
+                if (skyPercent <= 60) return "#ADFF2F";
+                if (skyPercent <= 70) return "#00FF00";
+                if (skyPercent <= 80) return "#00CED1";
+                if (skyPercent <= 90) return "#1E90FF";
+                if (skyPercent <= 100) return "#0000FF";
+            }
+
+            // Initialize the chart
+            function initializeChart(chartContainerId, skyPercent = 0, buildingPercent = 0, treePercent = 0) {
+                var chartContainer = document.getElementById(chartContainerId);
+                if (chartContainer) {
+                    chart = echarts.init(chartContainer);
+                    updateChart(chart, skyPercent, buildingPercent, treePercent);
+                } else {
+                    console.error('Chart container element not found.');
+                }
+            }
+
+            function updateChart(chart, skyPercent = 0, buildingPercent = 0, treePercent = 0) {
+                if (!chart) {
+                    console.error('Chart is not initialized.');
+                    return;
+                }
+
+                var option = {
+                    tooltip: {
+                        trigger: 'axis',
+                        axisPointer: {
+                            type: 'shadow'
+                        }
+                    },
+                    legend: {
+                        data: ['SVF', 'BVF', 'TVF'],
+                        align: 'left',
+                        left: 10
+                    },
+                    grid: {
+                        left: '3%',
+                        right: '4%',
+                        bottom: '3%',
+                        containLabel: true
+                    },
+                    xAxis: {
+                        type: 'category',
+                        data: ['Percentage']
+                    },
+                    yAxis: {
+                        type: 'value'
+                    },
+                    series: [
+                        {
+                            name: 'SVF',
+                            type: 'bar',
+                            stack: 'total',
+                            label: {
+                                show: true
+                            },
+                            emphasis: {
+                                focus: 'series'
+                            },
+                            data: [skyPercent],
+                            itemStyle: {
+                                color: '#66CCFF'
+                            }
+                        },
+                        {
+                            name: 'BVF',
+                            type: 'bar',
+                            stack: 'total',
+                            label: {
+                                show: true
+                            },
+                            emphasis: {
+                                focus: 'series'
+                            },
+                            data: [buildingPercent],
+                            itemStyle: {
+                                color: '#FF6699'
+                            }
+                        },
+                        {
+                            name: 'TVF',
+                            type: 'bar',
+                            stack: 'total',
+                            label: {
+                                show: true
+                            },
+                            emphasis: {
+                                focus: 'series'
+                            },
+                            data: [treePercent],
+                            itemStyle: {
+                                color: '#00CC66'
+                            }
+                        }
+                    ]
+                };
+                chart.setOption(option); // Set the chart option
+            }
+
+            // Handle window resize event
+            window.addEventListener('resize', function () {
+                if (chart) {
+                    chart.resize();
+                }
+            });
+            function fetchData(week) {
+                showLoadingModal();
+                fetch(`/gsv/getstreeview/${week}/`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok ' + response.statusText);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log(`Week ${week} data:`, data);
+
+                        data.forEach((point, index) => {
+                            var skyPercent = (point.sky / 321268 * 100).toFixed(2);
+                            var buildingPercent = (point.building / 321268 * 100).toFixed(2);
+                            var treePercent = (point.tree / 321268 * 100).toFixed(2);
+
+                            var popupContent = `
+                    <div style="font-size: 14px; max-width: 300px;">
+                        <b>Latitude:</b> ${point.lat}<br/>
+                        <b>Longitude:</b> ${point.lng}<br/>
+                        <b>SVF:</b> ${skyPercent}%<br/>
+                        <b>BVF:</b> ${buildingPercent}%<br/>
+                        <b>TVF:</b> ${treePercent}%<br/>
+                        <b>LST:</b> ${point.lst}°C<br/>
+                        <b>NDVI:</b> ${point.ndvi}<br/>
+                        <b>NDBI:</b> ${point.ndbi}<br/>
+                        <div id="chartContainer${index}" style="width: 250px; height: 180px; margin-top: 10px;"></div><br/>
+                        <div style="display: flex; justify-content: center;">
+                        <button id="showImageButton${index}" style="margin-top: 10px; border: 2px solid; border-radius: 5px; padding: 5px 10px; background-color: #99CCFF; color: black; cursor: pointer;">Correlation Matrix for Week ${week}</button>
+                        </div>
+                    </div>
+                `;
+
+                            var marker = L.circleMarker([point.lat, point.lng], {
+                                color: getColor(skyPercent),
+                                radius: 8
+                            }).addTo(map);
+
+                            marker.on('click', function () {
+                                showModal(popupContent);
+                                initializeChart(`chartContainer${index}`, skyPercent, buildingPercent, treePercent);
+
+                                document.getElementById(`showImageButton${index}`).addEventListener('click', function () {
+                                    showImage(week);
+                                });
+                            });
+                        });
+
+                        closeModal();
+                    })
+                    .catch(error => {
+                        console.error('Error fetching data:', error);
+                        closeModal();
+                    });
+            }
+
+            function showImage(week) {
+                const imageUrl = `/gsv/imgweek/${week}`;
+                const image = new Image();
+                image.src = imageUrl;
+                image.alt = `Image for Week ${week}`;
+                image.className = 'responsive-image';
+                image.onerror = function () {
+                    this.src = 'placeholder.jpg';
+                };
+                const modal = document.createElement('div');
+                modal.className = 'modal';
+
+                const modalContent = document.createElement('div');
+                modalContent.className = 'modal-content';
+                modalContent.style.display = 'flex';
+
+                const imageContainer = document.createElement('div');
+                imageContainer.style.flex = '1'; // ขยายให้รูปภาพเต็มพื้นที่
+
+                const closeButton = document.createElement('button');
+                closeButton.className = 'close-button';
+                closeButton.innerHTML = '❌';
+                closeButton.onclick = function () {
+                    document.body.removeChild(modal);
+                };
+
+                modalContent.appendChild(imageContainer);
+                modalContent.appendChild(closeButton);
+                modalContent.appendChild(image);
+                modal.appendChild(modalContent);
+
+                document.body.appendChild(modal);
+            }
+
+            const map = L.map('map', {
+                center: [18.788798983151977, 98.98539497984945],
+                zoom: 13,
+            });
+
+            const google_Terrain = L.tileLayer('https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', {
+                attribution: 'Google Maps'
+            });
+
+            const Esri_WorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+                attribution: '&copy; <a href="https://www.esri.com">Esri</a>'
+            });
+
+            google_Terrain.addTo(map);
+
+            const geoJsonLayer = L.layerGroup();
+
+            fetch("{{ url_for('static1', filename='cm.geojson') }}")
+                .then(response => response.json())
+                .then(data => {
+                    L.geoJSON(data, {
+                        style: function (feature) {
+                            return {
+                                color: '#3388ff',
+                                weight: 2,
+                                opacity: 1,
+                                fillOpacity: 0.2,
+                                fillColor: '#3388ff'
+                            };
+                        },
+                        onEachFeature: function (feature, layer) {
+                            if (feature.properties && feature.properties.NAME_1) {
+                                layer.bindPopup(feature.properties.NAME_1);
+                            }
+                        }
+                    }).addTo(geoJsonLayer);
+                });
+
+            const overlayMap = {
+                "ขอบเขตเทศบาลนครเชียงใหม่": geoJsonLayer
+            };
+
+            const baseMap = {
+                "แผนที่จาก Google Terrain": google_Terrain,
+                "แผนที่ Esri Imagery": Esri_WorldImagery
+            };
+
+            L.control.layers(baseMap, overlayMap).addTo(map);
+            map.on('baselayerchange', function (e) {
+                // Handle base layer change if needed
+            });
+            // Get the dropdown and description elements
+            var weekDropdown = document.getElementById('week-dropdown');
+            var descriptions = {
+                1: "3 มกราคม 2565 - 9 มกราคม 2565",
+                2: "10 มกราคม 2565 - 16 มกราคม 2565",
+                3: "17 มกราคม 2565 - 23 มกราคม 2565",
+                4: "24 มกราคม 2565 - 30 มกราคม 2565",
+                5: "31 มกราคม 2565 - 6 กุมภาพันธ์ 2565",
+                6: "14 กุมภาพันธ์ 2565 - 20 กุมภาพันธ์ 2565",
+                7: "21 กุมภาพันธ์ 2565 - 27 กุมภาพันธ์ 2565",
+                8: "28 กุมภาพันธ์ 2565 - 6 มีนาคม 2565",
+                9: "7 มีนาคม 2565 - 13 มีนาคม 2565",
+                10: "14 มีนาคม 2565 - 20 มีนาคม 2565",
+                11: "21 มีนาคม 2565 - 27 มีนาคม 2565",
+                12: "28 มีนาคม 2565 - 3 เมษายน 2565",
+                13: "4 เมษายน 2565 - 10 เมษายน 2565",
+                14: "11 เมษายน 2565 - 17 เมษายน 2565",
+                15: "18 เมษายน 2565 - 24 เมษายน 2565",
+                16: "25 เมษายน 2565 - 1 พฤษภาคม 2565",
+                17: "2 พฤษภาคม 2565 - 8 พฤษภาคม 2565",
+                18: "9 พฤษภาคม 2565 - 15 พฤษภาคม 2565",
+                19: "16 พฤษภาคม 2565 - 22 พฤษภาคม 2565",
+                20: "23 พฤษภาคม 2565 - 29 พฤษภาคม 2565",
+                21: "30 พฤษภาคม 2565 - 5 มิถุนายน 2565",
+                22: "6 มิถุนายน 2565 - 12 มิถุนายน 2565",
+                44: "1 พฤศจิกายน 2564 - 7 พฤศจิกายน 2564",
+                45: "8 พฤศจิกายน 2564 - 14 พฤศจิกายน 2564",
+                46: "15 พฤศจิกายน 2564 - 21 พฤศจิกายน 2564",
+                47: "22 พฤศจิกายน 2564 - 28 พฤศจิกายน 2564",
+                48: "29 พฤศจิกายน 2564 - 5 ธันวาคม 2564",
+                49: "6 ธันวาคม 2564 - 12 ธันวาคม 2564",
+                50: "13 ธันวาคม 2564 - 19 ธันวาคม 2564",
+                51: "20 ธันวาคม 2564 - 26 ธันวาคม 2564",
+                52: "27 ธันวาคม 2564 - 2 มกราคม 2565"
+            };
+
+            // Create dropdown options with week number and date range
+            for (let week = 1; week <= 52; week++) {
+                if (week < 23 || week > 43) {
+                    var option = document.createElement('option');
+                    option.value = week;
+                    option.textContent = `Week ${week} (${descriptions[week] || ""})`; // Include date range
+                    weekDropdown.appendChild(option);
+                }
+            }
+
+            weekDropdown.addEventListener('change', function () {
+                var selectedWeek = this.value;
+                if (activeWeek !== selectedWeek) {
+                    activeWeek = selectedWeek;
+
+                    map.eachLayer(function (layer) {
+                        if (layer instanceof L.CircleMarker) {
+                            map.removeLayer(layer);
+                        }
+                    });
+
+                    fetchData(selectedWeek);
+                }
+            });
+
+            map.on('baselayerchange', function (e) {
+                // Handle base layer change if needed
+            });
+
+            var weekDescription = document.getElementById('week-description');
+
+            // Function to update the description of the selected week
+            function updateWeekDescription(week) {
+                weekDescription.innerHTML = `Week ${week}: ${descriptions[week] || "Select a week to see the description."}`;
+            }
+
+            // Display default message
+            weekDescription.innerHTML = "Select a week to see the description.";
+
+            // Update description when the week is selected
+            weekDropdown.addEventListener('change', function () {
+                var selectedWeek = this.value;
+                updateWeekDescription(selectedWeek);
+            });
+
+        });
+
+
+    </script>
+
+</body>
+
+</html>

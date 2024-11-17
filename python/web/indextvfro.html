@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>svfro</title>
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; 
+             style-src 'self' 'unsafe-inline' https://api.waqi.info https://cdn.jsdelivr.net https://fonts.googleapis.com https://unpkg.com; 
+             style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://unpkg.com; 
+             img-src 'self' https://unpkg.com https://tiles.stadiamaps.com https://mt1.google.com https://server.arcgisonline.com https://api.mapbox.com data:; 
+             script-src 'self' 'nonce-random123' https://cdnjs.cloudflare.com/ajax/libs/echarts/5.3.0/echarts.min.js https://unpkg.com https://cdn.jsdelivr.net https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js https://cdn.jsdelivr.net/npm/chart.js; 
+             connect-src 'self' https://api.waqi.info;">
+    <link rel="icon" href="/gsv/imggolo/logo" type="image/x-icon">
+    <!-- Link to Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: "Roboto", sans-serif;
+        }
+
+        .legend-container {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            border: 1px solid #ddd;
+            padding: 5px;
+            border-radius: 5px;
+            z-index: 1000;
+            font-size: 12px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+            max-width: 90%;
+            box-sizing: border-box;
+        }
+
+        .legend-container div {
+            display: flex;
+            align-items: center;
+            margin-bottom: 3px;
+            flex-wrap: wrap;
+        }
+
+        .legend-container span {
+            display: inline-block;
+            width: 20px;
+            height: 15px;
+            margin-right: 10px;
+            border: 1px solid #ddd;
+        }
+
+        @media (max-width: 600px) {
+            .legend-container {
+                font-size: 10px;
+                padding: 3px;
+                right: 10px;
+                bottom: 50 px;
+
+            }
+
+            .legend-container span {
+                width: 12px;
+                height: 12px;
+                margin-right: 8px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .legend-container {
+                font-size: 8px;
+                padding: 2px;
+                right: 5px;
+                bottom: 20px;
+
+            }
+
+            .legend-container span {
+                width: 10px;
+                height: 10px;
+                margin-right: 6px;
+            }
+        }
+
+
+        #chartContainer {
+            width: 100%;
+            height: 400px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+        }
+
+        @media (max-width: 1024px) {
+            #chartContainer {
+                width: 100%;
+                height: 300px;
+
+            }
+        }
+
+        @media (max-width: 768px) {
+            #chartContainer {
+                width: 100%;
+                height: 300px;
+
+            }
+        }
+
+        @media (max-width: 600px) {
+            #chartContainer {
+                width: 100%;
+                height: 230px;
+
+            }
+        }
+
+        @media (max-width: 480px) {
+            #chartContainer {
+                width: 97%;
+                height: 230px;
+
+            }
+        }
+
+        @media (max-width: 360px) {
+            #chartContainer {
+                width: 97%;
+                height: 230px;
+                z-index: 1050;
+
+            }
+        }
+
+        #custom-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            max-width: 310px;
+            height: 100%;
+            max-height: 470px;
+            padding: 20px;
+            background-color: white;
+            border: 2px solid #ccc;
+            border-radius: 10px;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        #popup-close {
+            cursor: pointer;
+            border: none;
+            background-color: #FF6347;
+            color: #333;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        /* Add this to your <style> block */
+        .no-scroll {
+            overflow: hidden;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            /* semi-transparent background */
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            position: relative;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            max-width: 90%;
+            max-height: 90%;
+            overflow: auto;
+        }
+
+        .responsive-image {
+            max-width: 100%;
+            max-height: 80vh;
+        }
+
+        .close-button {
+            position: absolute;
+            top: 0;
+            right: 0;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 3px;
+
+
+        }
+
+        .close-button:hover {
+            background: #ffffff;
+        }
+
+        @media (max-width: 600px) {
+            .modal-content {
+                padding: 10px;
+            }
+
+            .close-button {
+                top: 0;
+                right: 0;
+                padding: 4px 8px;
+                font-size: 12px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .modal-content {
+                max-width: 95%;
+                max-height: 95%;
+                padding: 5px;
+            }
+
+            .close-button {
+                top: 0;
+                right: 0;
+                padding: 2px 3px;
+                font-size: 10px;
+            }
+        }
+
+        #showImageButton {
+            background-color: #33CC99;
+            color: rgb(68, 66, 66);
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.1s ease, box-shadow 0.1s ease;
+            border-radius: 5px;
+            box-shadow: 0 4px 0 #d9d7d7;
+        }
+
+        #showImageButton:hover {
+            background-color: #d9d7d7;
+        }
+
+        #showImageButton:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #b5b5b5;
+        }
+
+
+        .map-container {
+            padding: 10px;
+            width: 100%;
+            box-sizing: border-box;
+
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+
+        #route-dropdown {
+            width: 100%;
+            max-width: 130px;
+            box-sizing: border-box;
+            padding: 8px;
+        }
+
+        @media (max-width: 1200px) {
+            #route-dropdown {
+                width: 60%;
+                max-width: 130px;
+            }
+        }
+
+        @media (max-width: 900px) {
+            #route-dropdown {
+                width: 60%;
+                max-width: 130px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            #route-dropdown {
+                width: 60%;
+                max-width: 130px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            #route-dropdown {
+                width: 60%;
+                max-width: 130px;
+            }
+        }
+    </style>
+</head>
+
+<!-- Navbar -->
+<nav class="bg-gray-800 text-white p-4 rounded-lg shadow-lg transition-all duration-300">
+    <div class="container mx-auto flex justify-between items-center relative rounded-lg">
+        <a href="#">
+            <img src="/gsv/imggolo/logo" alt="Deep Learning" style="width: 40px; height: 40px;">
+        </a>
+        <button id="menu-toggle" aria-label="Toggle menu"
+            class="block lg:hidden focus:outline-none transition-transform transform hover:scale-105">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7">
+                </path>
+            </svg>
+        </button>
+        <ul id="menu" class="hidden lg:flex space-x-4">
+            <li><a href="/gsv/homenew" target="_self"
+                    class="hover:text-gray-300 transition-colors duration-200">Home</a></li>
+            <li><a href="/gsv/manual" target="_self"
+                    class="hover:text-gray-300 transition-colors duration-200">Manual</a>
+            </li>
+            <li><a href="/gsv/sumroute" target="_self"
+                    class="hover:text-gray-300 transition-colors duration-200">Back</a></li>
+        </ul>
+    </div>
+    <div id="dropdown-menu"
+        class="hidden lg:hidden bg-gray-800 text-white absolute right-0 mt-2 shadow-lg rounded-lg overflow-hidden z-50">
+        <a href="/gsv/homenew" class="block p-2 hover:bg-gray-700">Home</a>
+        <a href="/gsv/manual" class="block p-2 hover:bg-gray-700">Manual</a>
+        <a href="/gsv/sumroute" class="block p-2 hover:bg-gray-700">Back</a>
+    </div>
+</nav>
+
+<!-- Container -->
+<div class="container mx-auto p-4">
+    <h1 class="text-4xl font-bold mb-4 text-center">ความสัมพันธ์อุณหภูมิพื้นผิว กับ Route map 4 เส้นทางเชียงใหม่ (TVF)
+    </h1>
+    <p class="text-gray-700 leading-relaxed text-center">สัดส่วนการมองเห็นต้นไม้ Tree View Factor (TVF)
+    </p>
+
+    <!-- Container for the route description button and description -->
+    <div class="route-description-container">
+        <button id="route-description-toggle" class="route-description-toggle">
+            <b>Data route:</b>
+        </button>
+        <div id="route-description" class="route-description">
+            <!-- Week description will be dynamically inserted here -->
+        </div>
+    </div>
+    <!-- Dropdown for routes -->
+    <div class="mb-4 text-center">
+        <div id="route-selection" class="mt-4">
+            <select id="route-dropdown" class="p-2 border border-gray-300 rounded-md">
+                <option value="">Select route</option>
+                <!-- Options will be populated by JavaScript -->
+            </select>
+            <button id="showImageButton" class="mt-2 p-2 border border-gray-300 rounded-md">Correlation Matrix</button>
+        </div>
+    </div>
+
+
+    <!-- Map Container -->
+    <div id="map-container" class="map-container">
+        <div id="map" style="height: 600px;">
+            <div id="legend-container" class="legend-container">
+                <center>
+                    <h6 class="text-lg font-semibold mb-2">TVF</h6>
+                </center>
+                <div><span style="background-color:#B22222;"></span> 0-10%</div>
+                <div><span style="background-color:#FF4500;"></span> 10-20%</div>
+                <div><span style="background-color:#FF7F00;"></span> 20-30%</div>
+                <div><span style="background-color:#ffbf49;"></span> 30-40%</div>
+                <div><span style="background-color:#FFFF00;"></span> 40-50%</div>
+                <div><span style="background-color:#FFFF99;"></span> 50-60%</div>
+                <div><span style="background-color:#BDFCC9;"></span> 60-70%</div>
+                <div><span style="background-color:#7FFF00;"></span> 70-80%</div>
+                <div><span style="background-color:#00CC00;"></span> 80-90%</div>
+                <div><span style="background-color:#006400;"></span> 90-100%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Container -->
+    <div id="chartContainer"></div>
+
+    <!-- Custom Popup Container -->
+    <div id="custom-popup" class="fixed bg-white border border-gray-300 rounded shadow-lg p-4 hidden z-50">
+        <div id="popup-header" class="flex justify-between items-center mb-2">
+            <h2 class="text-lg font-semibold">Data</h2>
+            <button id="popup-close" class="text-gray-600 bg-gray-200 p-2 rounded">Close</button>
+        </div>
+        <div id="popup-content"></div>
+    </div>
+
+
+</div>
+
+<!-- Footer -->
+<footer class="bg-gray-800 text-white p-4 rounded-t-lg">
+    <div class="container mx-auto text-center rounded-t-lg">&copy; 2024 by Kanyapat.</div>
+</footer>
+
+<!-- JavaScript with nonce -->
+<script nonce="random123" src="https://cdnjs.cloudflare.com/ajax/libs/echarts/5.3.0/echarts.min.js"></script>
+<script nonce="random123" src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script nonce="random123" src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script nonce="random123" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script nonce="random123">
+    document.getElementById('menu-toggle').addEventListener('click', function () {
+        const menu = document.getElementById('dropdown-menu');
+        menu.classList.toggle('hidden');
+    });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        let activeRoute = null;
+        const chart = echarts.init(document.getElementById('chartContainer')); // Initialize ECharts
+
+        function showLoadingModal() {
+            // Implement loading modal logic if needed
+        }
+
+        function closeModal() {
+            // Implement close modal logic if needed
+        }
+
+        function getColor(svfPercent) {
+            if (svfPercent <= 10) return "#B22222";
+            if (svfPercent <= 20) return "#FF4500";
+            if (svfPercent <= 30) return "#FF7F00";
+            if (svfPercent <= 40) return "#ffbf49";
+            if (svfPercent <= 50) return "#FFFF00";
+            if (svfPercent <= 60) return "#FFFF99";
+            if (svfPercent <= 70) return "#BDFCC9";
+            if (svfPercent <= 80) return "#7FFF00";
+            if (svfPercent <= 90) return "#00CC00";
+            if (svfPercent <= 100) return "#006400";
+        }
+
+        // Function to prevent scrolling when popup is shown
+        function preventScroll() {
+            document.body.style.overflow = 'hidden';
+        }
+
+        // Function to allow scrolling when popup is hidden
+        function allowScroll() {
+            document.body.style.overflow = 'auto';
+        }
+
+        // Function to display the popup without the pie chart
+        function showPopup(content) {
+            const popup = document.getElementById('custom-popup');
+            const popupContent = document.getElementById('popup-content');
+
+            // Update the popup content without the pie chart
+            popupContent.innerHTML = `
+            ${content}
+        `;
+            popup.style.display = 'block';
+            preventScroll(); // Prevent scrolling
+        }
+
+        // Function to hide the popup
+        function hidePopup() {
+            const popup = document.getElementById('custom-popup');
+            popup.style.display = 'none';
+            allowScroll(); // Allow scrolling
+        }
+
+        function fetchData(route) {
+            showLoadingModal(); // Show a loading modal while data is being fetched
+            fetch(`/gsv/getroute/${route}/`)
+                .then((response) => response.json()) // Parse JSON data from response
+                .then((data) => {
+                    console.log(`route ${route} data:`, data);
+                    data.forEach((point, index) => {
+                        // Calculate percentages for SVF, BVF, and TVF
+                        const svfPercent = ((point.svf / 321268) * 100).toFixed(2);
+                        const bvfPercent = ((point.bvf / 321268) * 100).toFixed(2);
+                        const tvfPercent = ((point.tvf / 321268) * 100).toFixed(2);
+
+                        // Add a circle marker for each data point
+                        L.circleMarker([point.lat, point.lng], {
+                            color: getColor(tvfPercent),
+                            radius: 8,
+                        }).on('click', function () {
+                            // Create popup content with data and a button
+                            const content = `
+                                    <b>Latitude:</b> ${point.lat}<br/>
+                                    <b>Longitude:</b> ${point.lng}<br/>
+                                    <b>SVF:</b> ${svfPercent}%<br/>
+                                    <b>BVF:</b> ${bvfPercent}%<br/>
+                                    <b>TVF:</b> ${tvfPercent}%<br/>
+                                    <b>LST:</b> ${point.lst}°C<br/>
+                                    <b>NDVI:</b> ${point.ndvi}<br/>
+                                    <b>NDBI:</b> ${point.ndbi}
+                                    <div id="echartsContainer${index}" style="width: 250px; height: 180px; margin-top: 2px;"></div>
+                                `;
+                            // Show the popup with content
+                            showPopup(content);
+                            // Initialize ECharts in the popup
+                            const chartContainer = document.getElementById(`echartsContainer${index}`);
+                            const myChart = echarts.init(chartContainer);
+
+                            const option = {
+                                tooltip: {
+                                    trigger: 'item',
+                                },
+                                legend: {
+                                    top: 'bottom',
+                                },
+                                series: [
+                                    {
+                                        name: 'Values',
+                                        type: 'pie',
+                                        radius: ['40%', '60%'],
+                                        data: [
+                                            { value: svfPercent, name: 'SVF', itemStyle: { color: '#0033FF' } }, // Custom color for SVF
+                                            { value: bvfPercent, name: 'BVF', itemStyle: { color: '#FF0066' } }, // Custom color for BVF
+                                            { value: tvfPercent, name: 'TVF', itemStyle: { color: '#00CC66' } }, // Custom color for TVF
+                                        ],
+                                        emphasis: {
+                                            itemStyle: {
+                                                shadowBlur: 10,
+                                                shadowOffsetX: 0,
+                                                shadowColor: 'rgba(0, 0, 0, 0.5)',
+                                            },
+                                        },
+                                    },
+                                ],
+                                padding: [10, 20],
+                            };
+                            myChart.setOption(option);
+
+                        }).addTo(map); // Add marker to the map
+                    });
+                    closeModal(); // Close loading modal
+                    updateChart(data); // Update other charts if necessary
+                })
+                .catch((error) => {
+                    console.error('Error fetching data:', error);
+                    closeModal(); // Close loading modal in case of error
+                });
+        }
+
+
+        // Add event listener for the popup close button
+        document.getElementById('popup-close').addEventListener('click', hidePopup);
+
+        // Add event listener for the show image button
+        document.getElementById('showImageButton').addEventListener('click', function () {
+            if (activeRoute) {
+                showImage(activeRoute);
+            } else {
+                alert('Please select a route first!');
+            }
+        });
+
+        function showImage(route) {
+            const imageUrl = `/gsv/imgroute/${route}`;
+            const image = new Image();
+            image.src = imageUrl;
+            image.alt = `Image for route ${route}`;
+            image.className = 'responsive-image';
+            image.onerror = function () {
+                this.src = 'placeholder.jpg';
+            };
+
+            const modal = document.createElement('div');
+            modal.className = 'modal';
+
+            const modalContent = document.createElement('div');
+            modalContent.className = 'modal-content';
+            modalContent.style.display = 'flex'; // เพิ่ม CSS Flexbox เพื่อจัดการจัดวาง
+
+            const imageContainer = document.createElement('div');
+            imageContainer.style.flex = '1'; // ขยายให้รูปภาพเต็มพื้นที่
+
+            const closeButton = document.createElement('button');
+            closeButton.className = 'close-button';
+            closeButton.innerHTML = '❌';
+            closeButton.onclick = function () {
+                document.body.removeChild(modal);
+            };
+
+            modalContent.appendChild(imageContainer);
+            imageContainer.appendChild(image);
+            modalContent.appendChild(closeButton);
+            modal.appendChild(modalContent);
+
+            document.body.appendChild(modal);
+        }
+
+        // Function to initialize the chart with default data (straight lines)
+        function initializeChart() {
+            const defaultDates = ['', '', '', '', ''];
+            const defaultSVF = [30, 30, 30, 30, 30]; // Default values for SVF
+            const defaultBVF = [35, 35, 35, 35, 35]; // Default values for BVF
+            const defaultTVF = [20, 20, 20, 20, 20]; // Default values for TVF
+            const defaultLST = [30, 30, 30, 30, 30]; // Default values for LST, set to 20°C
+
+            const option = {
+                tooltip: {
+                    trigger: 'axis',
+                },
+                legend: {
+                    data: ['SVF', 'BVF', 'TVF', 'LST'],
+                },
+                xAxis: [
+                    {
+                        type: 'category',
+                        boundaryGap: false,
+                        data: defaultDates, // Default dates
+                    },
+                ],
+                yAxis: [
+                    {
+                        type: 'value',
+                        name: 'Percentage',
+                        position: 'left',
+                        splitLine: { show: true },
+                    },
+                    {
+                        type: 'value',
+                        name: 'LST (°C)',
+                        position: 'right',
+                        min: 20, // Set minimum value for LST axis to 20°C
+                        axisLabel: {
+                            formatter: '{value} °',
+                        },
+                        splitLine: { show: true },
+                    },
+                ],
+                series: [
+                    {
+                        name: 'SVF',
+                        type: 'line',
+                        data: defaultSVF, // Default data
+                        yAxisIndex: 0,
+                        smooth: true,
+                        itemStyle: {
+                            color: '#0033FF',
+                        },
+                    },
+                    {
+                        name: 'BVF',
+                        type: 'line',
+                        data: defaultBVF, // Default data
+                        yAxisIndex: 0,
+                        smooth: true,
+                        itemStyle: {
+                            color: '#FF0066',
+                        },
+                    },
+                    {
+                        name: 'TVF',
+                        type: 'line',
+                        data: defaultTVF, // Default data
+                        yAxisIndex: 0,
+                        smooth: true,
+                        itemStyle: {
+                            color: '#00CC66',
+                        },
+                    },
+                    {
+                        name: 'LST',
+                        type: 'line',
+                        data: defaultLST, // Default data
+                        yAxisIndex: 1,
+                        smooth: true,
+                        itemStyle: {
+                            color: '#CC3300',
+                        },
+                    },
+                ],
+            };
+
+            chart.setOption(option);
+        }
+
+        // Function to update the chart with data when a route is selected
+        function updateChart(data) {
+            if (!Array.isArray(data) || data.length === 0) {
+                console.error('Invalid data format');
+                return;
+            }
+
+            const dates = data.map((point) => (point.date ? point.date : '')); // Adjust based on your data structure
+            const svfValues = data.map((point) =>
+                point.svf ? ((point.svf / 321268) * 100).toFixed(2) : 0
+            );
+            const bvfValues = data.map((point) =>
+                point.bvf ? ((point.bvf / 321268) * 100).toFixed(2) : 0
+            );
+            const tvfValues = data.map((point) =>
+                point.tvf ? ((point.tvf / 321268) * 100).toFixed(2) : 0
+            );
+            const lstValues = data.map((point) => (point.lst ? point.lst : 0));
+
+            const option = {
+                xAxis: [
+                    {
+                        data: dates,
+                    },
+                ],
+                series: [
+                    {
+                        data: svfValues,
+                    },
+                    {
+                        data: bvfValues,
+                    },
+                    {
+                        data: tvfValues,
+                    },
+                    {
+                        data: lstValues,
+                    },
+                ],
+            };
+
+            chart.setOption(option);
+        }
+
+        // Initialize the chart with default data
+        initializeChart();
+
+        const map = L.map('map', {
+            center: [18.788798983151977, 98.98539497984945],
+            zoom: 13,
+        });
+
+        const google_Terrain = L.tileLayer(
+            'https://mt1.google.com/vt/lyrs=p&x={x}&y={y}&z={z}',
+            {
+                attribution: 'Google Maps',
+            }
+        );
+
+        const Esri_WorldImagery = L.tileLayer(
+            'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+            {
+                attribution: '&copy; <a href="https://www.esri.com">Esri</a>',
+            }
+        );
+
+        google_Terrain.addTo(map);
+
+        const geoJsonLayer = L.layerGroup();
+
+        fetch("{{ url_for('static1', filename='cm.geojson') }}")
+            .then((response) => response.json())
+            .then((data) => {
+                L.geoJSON(data, {
+                    style: function (feature) {
+                        return {
+                            color: '#3388ff',
+                            weight: 2,
+                            opacity: 1,
+                            fillOpacity: 0.2,
+                            fillColor: '#3388ff',
+                        };
+                    },
+                    onEachFeature: function (feature, layer) {
+                        if (feature.properties && feature.properties.NAME_1) {
+                            layer.bindPopup(feature.properties.NAME_1);
+                        }
+                    },
+                }).addTo(geoJsonLayer);
+            });
+
+        const overlayMap = {
+            ขอบเขตเทศบาลนครเชียงใหม่: geoJsonLayer,
+        };
+
+        const baseMap = {
+            'แผนที่จาก Google Terrain': google_Terrain,
+            'แผนที่ Esri Imagery': Esri_WorldImagery,
+        };
+
+        L.control.layers(baseMap, overlayMap).addTo(map);
+
+        const routeDropdown = document.getElementById('route-dropdown');
+        const showImageButton = document.getElementById('showImageButton');
+
+        const routeDescriptions = {
+            1: 'เส้นทางทิศเหนือ-ทิศใต้',
+            2: 'เส้นทางทิศตะวันตก-ทิศตะวันออก',
+            3: 'เส้นทางทิศตะวันตกเฉียงเหนือ-ทิศตะวันออกเฉียงใต้',
+            4: 'เส้นทางทิศตะวันตกเฉียงใต้-ทิศตะวันออกเฉียงเหนือ'
+        };
+
+        for (let route = 1; route <= 4; route++) {
+            const option = document.createElement('option');
+            option.value = route;
+            option.textContent = `Route ${route} (${routeDescriptions[route]})`;
+            routeDropdown.appendChild(option);
+        }
+
+        routeDropdown.addEventListener('change', function () {
+            const selectedRoute = this.value;
+            if (activeRoute !== selectedRoute) {
+                activeRoute = selectedRoute;
+
+                // Show the button when a route is selected
+                showImageButton.style.display = 'inline-block';
+
+                map.eachLayer(function (layer) {
+                    if (layer instanceof L.CircleMarker) {
+                        map.removeLayer(layer);
+                    }
+                });
+
+                fetchData(selectedRoute);
+            }
+            updaterouteDescription(selectedRoute);
+        });
+
+        const routeDescriptionToggle = document.getElementById('route-description-toggle');
+        const routeDescription = document.getElementById('route-description');
+
+        function updaterouteDescription(route) {
+            const descriptions = {
+                1: 'Route 1: 30 ตุลาคม 2566 - 5 พฤจิกายน 2566 <br> เส้นทางทิศเหนือ-ทิศใต้ (เริ่มต้น:แม่ริม - สิ้นสุด:หางดง)',
+                2: 'Route 2: 18 เมษายน 2565 - 24 เมษายน 2565 <br> เส้นทางทิศตะวันตก-ทิศตะวันออก (เริ่มต้น:สถาบันวิจัยและพัฒนาพื้นที่สูง (องค์การมหาชน) ตำบลสุเทพ อำเภอเมือง - สิ้นสุด:ตำบลต้นเปา อำเภอสันกำแพง)',
+                3: 'Route 3: 30 มกราคม 2566 - 5 มกราคม 2566 <br> เส้นทางทิศตะวันตกเฉียงเหนือ-ทิศตะวันออกเฉียงใต้ (เริ่มต้น:อนุสาวรีย์พระครูบาศีวิชัย ตำบลสุเทพ อำเภอเมือง - สิ้นสุด:ตำบลหนองผึ้ง อำเภอสารภี)',
+                4: 'Route 4: 29 มกราคม 2567 - 4 กุมภาพันธ์ 2567 <br> เส้นทางทิศตะวันตกเฉียงใต้-ทิศตะวันออกเฉียงเหนือ (เริ่มต้น:กองบิน41 ตำบลสุเทพ อำเภอเมือง - สิ้นสุด:โรงพยาบาลดอยสะเก็ด ตำบลเชิงดอย อำเภอดอยสะเก็ด)',
+            };
+
+            routeDescription.innerHTML =
+                descriptions[route] || 'Select a route to see the description.';
+        }
+
+        routeDescriptionToggle.addEventListener('click', function () {
+            routeDescription.style.display =
+                routeDescription.style.display === 'none' || routeDescription.style.display === ''
+                    ? 'block'
+                    : 'none';
+        });
+
+        // Initialize with default description
+        updaterouteDescription(routeDropdown.value);
+    });
+
+
+</script>
+</body>
+
+</html>

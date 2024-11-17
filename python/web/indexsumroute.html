@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sumroute</title>
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self'; script-src 'self' 'nonce-random123';">
+    <link rel="icon" href="/gsv/imggolo/logo" type="image/x-icon">
+    <!-- Link to Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: "Roboto", sans-serif;
+        }
+
+        .btn-pastel {
+            background-color: #437f8e;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-pastel:hover {
+            background-color: #83b3c1;
+        }
+
+
+        .show {
+            display: block;
+        }
+
+        /* Style adjustments for links */
+        #menu {
+            padding: 0 1rem;
+            /* Add padding to the entire menu */
+
+        }
+
+        #menu li {
+            margin-bottom: 0.5rem;
+            /* Add margin between menu items */
+        }
+
+        #dropdown-menu {
+            padding: 0.5rem 1rem;
+            /* Add padding to dropdown menu */
+            border: 2px solid white;
+        }
+
+        #dropdown-menu a {
+            padding: 0.5rem 1rem;
+
+        }
+
+        /* Style for box 1 */
+        .box1 {
+            border: 2px solid #59cce9;
+            /* สีกรอบของ box 1 */
+            border-radius: 8px;
+            /* ขอบกรอบเว็บ */
+        }
+
+        .box1:hover {
+            transform: scale(1.05);
+            border-color: #83b3c1;
+            /* สีขอบของกรอบของ box 1 เมื่อใช้hover */
+        }
+
+        /* Style for box 2 */
+        .box2 {
+            border: 2px solid #60ba5b;
+            /* สีกรอบของ box 2 */
+            border-radius: 8px;
+            /* ขอบกรอบของ box 2 */
+        }
+
+        .box2:hover {
+            transform: scale(1.05);
+            border-color: #7fca72;
+            /* สีกรอบของ box 2 เมื่อใช้ hover */
+        }
+
+        /* Style for box 3 */
+        .box3 {
+            border: 2px solid #db2e2e;
+            /* สีกรอบของ box 3 */
+            border-radius: 8px;
+            /* ขอบกรอบของ box 3 */
+        }
+
+        .box3:hover {
+            transform: scale(1.05);
+            border-color: #ff6666;
+            /* สีกรอบของ box 3 เมื่อใช้hover */
+        }
+
+        /* Common style for hover effect */
+        .hover-effect {
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .hover-effect:hover {
+            transform: scale(1.05);
+        }
+
+        @keyframes scrollUp {
+            0% {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Apply the animation to each box */
+        .box1,
+        .box2,
+        .box3 {
+            opacity: 0;
+            animation: scrollUp 1s ease forwards;
+        }
+
+        /* Stagger the animation for each box */
+        .box1 {
+            animation-delay: 0.3s;
+        }
+
+        .box2 {
+            animation-delay: 0.6s;
+        }
+
+        .box3 {
+            animation-delay: 0.9s;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <!-- Navbar -->
+    <nav class="bg-gray-800 text-white p-4">
+        <div class="container mx-auto flex justify-between items-center relative">
+            <a href="#">
+                <img src="/gsv/imggolo/logo" alt="Deep Learning" style="width: 40px; height: 40px;">
+            </a>
+            <button id="menu-toggle" class="block lg:hidden focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7">
+                    </path>
+                </svg>
+            </button>
+            <ul id="menu" class="hidden lg:flex space-x-4">
+                <li><a href="/gsv/homenew" target="_self" class="hover:text-gray-300">Home</a></li>
+                <li><a href="/gsv/manual" target="_self" class="hover:text-gray-300">Manual</a></li>
+                <li><a href="/gsv/homenew" target="_self" class="hover:text-gray-300">Back</a></li>
+            </ul>
+        </div>
+        <!-- Dropdown Menu for Small Screens -->
+        <div id="dropdown-menu"
+            class="hidden lg:hidden bg-gray-800 text-white absolute right-0 mt-2 shadow-lg rounded-lg overflow-hidden z-50">
+            <a href="/gsv/homenew" class="block p-2 hover:bg-gray-700">Home</a>
+            <a href="/gsv/manual" class="block p-2 hover:bg-gray-700">Manual</a>
+            <a href="/gsv/homenew" class="block p-2 hover:bg-gray-700">Back</a>
+        </div>
+    </nav>
+
+
+    <!-- Container -->
+    <div class="container mx-auto p-4">
+        <h1 class="text-4xl font-bold mb-4 text-center">Route map 4 เส้นทางเชียงใหม่</h1>
+        <p class="text-gray-700 leading-relaxed text-center">
+            Route map 4 Chiang Mai route.
+        </p>
+
+        <!-- Responsive Grid Layout -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8">
+            <div class="bg-white p-6 rounded-lg shadow flex flex-col items-center hover-effect box1" id="box1">
+                <img src="/gsv/img/sumdeep1" alt="Box 1 Image" class="w-full h-80 object-cover mb-4 rounded">
+                <h2 class="text-2xl font-bold mb-2 text-center">อัตราการมองเห็นท้องฟ้า <br> Sky View Factor (SVF) </h2>
+                <p class="text-gray-700 mb-4 text-center">สัดส่วนพื้นที่ท้องฟ้าที่มองเห็น</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow flex flex-col items-center hover-effect box2" id="box2">
+                <img src="/gsv/img/sumdeep2" alt="Box 2 Image" class="w-full h-80 object-cover mb-4 rounded">
+                <h2 class="text-2xl font-bold mb-2 text-center">อัตราการมองเห็นต้นไม้ <br> Tree View Factor (TVF)</h2>
+                <p class="text-gray-700 mb-4 text-center">สัดส่วนพื้นที่ต้นไม้ที่มองเห็น</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-lg shadow flex flex-col items-center hover-effect box3" id="box3">
+                <img src="/gsv/img/sumdeep3" alt="Box 3 Image" class="w-full h-80 object-cover mb-4 rounded">
+                <h2 class="text-2xl font-bold mb-2 text-center">อัตราการมองเห็นสิ่งปลูกสร้าง <br> Building View Factor
+                    (BVF) </h2>
+                <p class="text-gray-700 mb-4 text-center">สัดส่วนพื้นที่สิ่งปลูกสร้างที่มองเห็น</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white p-4">
+        <div class="container mx-auto text-center">
+            &copy; 2024 by Kanyapat.
+        </div>
+    </footer>
+
+    <!-- JavaScript with nonce -->
+    <script nonce="random123">
+        document.getElementById('menu-toggle').addEventListener('click', function () {
+            const menu = document.getElementById('dropdown-menu');
+            menu.classList.toggle('show');
+        });
+        document.getElementById('box1').addEventListener('click', function () {
+            window.location.href = '/gsv/svfro';
+        });
+        document.getElementById('box2').addEventListener('click', function () {
+            window.location.href = '/gsv/tvfro';
+        });
+        document.getElementById('box3').addEventListener('click', function () {
+            window.location.href = '/gsv/bvfro';
+        });
+    </script>
+</body>
+
+</html>
