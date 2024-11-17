@@ -24,4 +24,4 @@ services:
       - "5100:5000"
     volumes:
       - ./python:/app
-    command: /bin/bash -c "apt install libgl1-mesa-glx && pip install -r requirements.txt && python app.py"
+    command: /bin/bash -c "apt-get install -y libgl1 libglib2.0-0 && pip install -r requirements.txt && python app.py"
