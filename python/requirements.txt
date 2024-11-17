@@ -12,7 +12,6 @@ pybase64
 jsons
 talisman
 numpy
-python3-opencv
 opencv-python
 psycopg2-binary
 flask-talisman

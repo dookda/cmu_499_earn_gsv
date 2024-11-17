@@ -17,10 +17,11 @@ services:
     image: giswqs/segment-geospatial:latest
     container_name: gsv_python
     working_dir: /app
+    user: root
     depends_on:
       - postgis
     ports:
       - "5100:5000"
     volumes:
       - ./python:/app
-    command: /bin/bash -c "pip install -r requirements.txt && python app.py"
+    command: /bin/bash -c "apt install libgl1-mesa-glx && pip install -r requirements.txt && python app.py"
