@@ -23,4 +23,10 @@ services:
       - "5100:5000"
     volumes:
       - ./python:/app
-    command: /bin/bash -c "pip install --no-cache-dir -r requirements.txt && python app.py"
+    command: >
+      /bin/bash -c "
+        apt-get update && 
+        apt-get install -y libgl1-mesa-glx libglib2.0-0 &&
+        pip install --no-cache-dir -r requirements.txt && 
+        python app.py
+      "
