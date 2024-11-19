@@ -5,7 +5,7 @@ services:
     image: postgis/postgis:latest
     container_name: gsv_postgis
     ports:
-      - "5438:5432"
+      - "5439:5432"
     environment:
       POSTGRES_DB: gsv2svfnewnew
       POSTGRES_USER: postgres
