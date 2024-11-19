@@ -1,23 +1,27 @@
-FROM giswqs/segment-geospatial:latest
+FROM osgeo/gdal:latest
 
-# Install necessary system libraries
+# Install Python and necessary system packages
 USER root
 RUN apt-get update && apt-get install -y \
+    python3 python3-pip python3-venv \
     libegl1 libsm6 libxext6 libxrender-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Create and set up the virtual environment
+# Set working directory
 WORKDIR /app
-RUN python3 -m venv /venv
 
-# Activate the virtual environment by setting the PATH
+# Create and activate a virtual environment
+RUN python3 -m venv /venv
 ENV PATH="/venv/bin:$PATH"
 
-# Copy application code
-COPY . .
+# Copy requirements.txt first to cache dependencies
+COPY requirements.txt .
 
-# Install Python dependencies inside the virtual environment
+# Install Python dependencies in the virtual environment
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Set the default command
+# Copy the rest of the application code
+COPY . .
+
+# Set default command to run the application
 CMD ["python", "app.py"]
