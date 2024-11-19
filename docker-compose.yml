@@ -20,7 +20,7 @@ services:
     depends_on:
       - postgis
     ports:
-      - "5100:5000"
+      - "5800:5000"
     volumes:
       - ./python:/app
     command: /bin/bash -c "pip install -r requirements.txt && python app.py"
