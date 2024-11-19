@@ -23,4 +23,4 @@ services:
       - "5800:5000"
     volumes:
       - ./python:/app
-    command: /bin/bash -c "pip install -r requirements.txt && python app.py"
+    command: /bin/bash -c "pip install -r requirements2.txt && python app2.py"
