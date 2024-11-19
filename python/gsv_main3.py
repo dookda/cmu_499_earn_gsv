@@ -6,7 +6,7 @@ import scipy.misc
 from io import BytesIO
 from PIL import Image
 import matplotlib.pyplot as plt
-import cv2
+from cv2 import cv2
 import key
 import torch
 from ultralytics import YOLO
