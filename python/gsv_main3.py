@@ -2,7 +2,6 @@ import requests
 import json
 import os
 import numpy as np
-import scipy
 import scipy.misc
 from io import BytesIO
 from PIL import Image
@@ -15,6 +14,7 @@ import base64
 import psycopg2
 
 GSV_API_URL = "https://maps.googleapis.com/maps/api/streetview"
+
 
 class Panorama():
 
@@ -148,9 +148,9 @@ class GSVCapture():
         plt.axis('off')
         plt.tight_layout()
         plt.show()
-    
+
     def showMasks(self, results, class_id=2, class_name='tree', ax=None, outfile='img'):
-        
+
         for result in results:
             masks = result.masks.data
             boxes = result.boxes.data
@@ -162,17 +162,18 @@ class GSVCapture():
 
             cnt = people_mask.cpu().numpy()
             count = np.sum(cnt > 0)
-            
-            img_name = outfile+'fisheye_classified_cls_'+ str(class_name) +'.png'
+
+            img_name = outfile+'fisheye_classified_cls_' + \
+                str(class_name) + '.png'
             cv2.imwrite(img_name, people_mask.cpu().numpy())
-            
+
             # pixArr = {class_name: int(count)}
             if ax is not None:
                 # ax[class_id +1].imshow(people_mask.cpu().numpy(), cmap='gray')
                 # ax[class_id +1].axis('off')
                 # ax[class_id +1].set_title(f'{class_name}: {count} px')
                 continue
-            
+
         return int(count)
 
     def classify(self, infile, outfile):
@@ -186,18 +187,20 @@ class GSVCapture():
         fig, ax = plt.subplots(1, len(names) + 1, figsize=(10, 10))
         # ax[0].imshow(annotatedImageRGB)
         # ax[0].axis('off')
-        
+
         pixCnt = {}
         for n in names:
-            pixCnt[names[n]] = self.showMasks(results, n, names[n], ax, outfile)
+            pixCnt[names[n]] = self.showMasks(
+                results, n, names[n], ax, outfile)
 
         # print(pixCnt)
         # plt.tight_layout()
-        # plt.show()  
+        # plt.show()
 
-        Image.fromarray(annotatedImageRGB).save(outfile + "fisheye_classified.png")  
+        Image.fromarray(annotatedImageRGB).save(
+            outfile + "fisheye_classified.png")
         return pixCnt
-               
+
     def getByID(self, outdir, panoid):
         if panoid == '':
             return [-1, -1, -1]
@@ -235,29 +238,30 @@ class GSVCapture():
             outdir + "mosaic.png", outdir + "fisheye.png")
 
         pixCut = self.classify(outdir + "fisheye.png", outdir)
-        
+
         with open(outdir + "mosaic.png", "rb") as mosaic_file:
-            pixCut["mosaic"] = base64.b64encode(mosaic_file.read()).decode('utf-8')
+            pixCut["mosaic"] = base64.b64encode(
+                mosaic_file.read()).decode('utf-8')
 
         with open(outdir + "fisheye.png", "rb") as fe_file:
             pixCut["fe"] = base64.b64encode(fe_file.read()).decode('utf-8')
-        
+
         with open(outdir + "fisheye_classified.png", "rb") as fecls_file:
-            pixCut["fe_cls"] = base64.b64encode(fecls_file.read()).decode('utf-8')
+            pixCut["fe_cls"] = base64.b64encode(
+                fecls_file.read()).decode('utf-8')
 
         return pixCut
-        
+
     def insert_data(self, panoid, lat, lng, res, date):
         conn_string = "dbname='gsv2svfnewnew' user='postgres' host='postgis' port='5432' password='1234'"
         with psycopg2.connect(conn_string) as conn:
             with conn.cursor() as cur:
-              cur.execute(
-    f"INSERT INTO testgsv (panoid, lat, lng, datetime, building, tree, sky, fe64, fe_cls64) VALUES ('{panoid}', {lat}, {lng}, '{date}', {res['building']}, {res['tree']}, {res['sky']}, '{res['fe']}', '{res['fe_cls']}');")
+                cur.execute(
+                    f"INSERT INTO testgsv (panoid, lat, lng, datetime, building, tree, sky, fe64, fe_cls64) VALUES ('{panoid}', {lat}, {lng}, '{date}', {res['building']}, {res['tree']}, {res['sky']}, '{res['fe']}', '{res['fe_cls']}');")
         return 'insert ok'
-        
-        
+
     def getByLatLong(self, lat, lon):
-        
+
         outdir = "img"
         pano = Panorama()
         pano.fromLocation(lat, lon)
@@ -273,6 +277,6 @@ class GSVCapture():
 
     def countPixels(self, image_path):
         image = cv2.imread(image_path, cv2.IMREAD_GRAYSCALE)
-        print('size:',image.size)
+        print('size:', image.size)
         count = np.sum(image > 0)
         return count
