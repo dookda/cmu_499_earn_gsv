@@ -1,27 +1,18 @@
-FROM osgeo/gdal:latest
+FROM osgeo/gdal:ubuntu-small-latest
 
-# Install Python and necessary system packages
-USER root
+# Install Python and pip
 RUN apt-get update && apt-get install -y \
-    python3 python3-pip python3-venv \
-    libegl1 libsm6 libxext6 libxrender-dev \
+    python3-pip \
+    python3-dev \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
+# Install Python packages
+COPY requirements2.txt .
+RUN pip3 install --no-cache-dir -r requirements.txt
+
 WORKDIR /app
+COPY ./app /app
 
-# Create and activate a virtual environment
-RUN python3 -m venv /venv
-ENV PATH="/venv/bin:$PATH"
-
-# Copy requirements.txt first to cache dependencies
-COPY requirements.txt .
-
-# Install Python dependencies in the virtual environment
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the rest of the application code
-COPY . .
-
-# Set default command to run the application
-CMD ["python", "app.py"]
+CMD ["python3", "app.py"]
