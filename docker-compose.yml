@@ -22,4 +22,4 @@ services:
       - "5100:5000"
     volumes:
       - ./python:/app
-    command: python app.py
+    command: python app2.py

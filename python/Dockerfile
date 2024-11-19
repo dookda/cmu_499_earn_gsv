@@ -22,4 +22,4 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # No need to copy the rest of the code since it will be mounted
-CMD ["python", "app.py"]
+CMD ["python", "app2.py"]
