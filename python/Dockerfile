@@ -6,18 +6,18 @@ RUN apt-get update && apt-get install -y \
     libegl1 libsm6 libxext6 libxrender-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Create and activate a virtual environment
+# Create and set up the virtual environment
 WORKDIR /app
 RUN python3 -m venv /venv
 
-# Set environment variables for the virtual environment
+# Activate the virtual environment by setting the PATH
 ENV PATH="/venv/bin:$PATH"
 
 # Copy application code
 COPY . .
 
-# Install Python dependencies in the virtual environment
+# Install Python dependencies inside the virtual environment
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Set the default command to run the application
+# Set the default command
 CMD ["python", "app.py"]
