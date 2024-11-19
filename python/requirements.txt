@@ -2,7 +2,6 @@ Flask==3.0.3
 pandas
 requests
 scipy
-opencv-python-headless
 torch
 ultralytics
 matplotlib
