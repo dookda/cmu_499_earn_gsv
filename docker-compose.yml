@@ -4,25 +4,30 @@ services:
   postgis:
     image: postgis/postgis:latest
     container_name: gsv_postgis
-    # ports:
-    #   - "5439:5432"
+    ports:
+      - "5439:5432"
     environment:
       POSTGRES_DB: gsv2svfnewnew
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: 1234
     volumes:
       - ./postgis:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   python:
-    # image: giswqs/segment-geospatial:latest
-    image: osgeo/gdal:ubuntu-small-3.6.3
+    image: python:3.10
     container_name: gsv_python
     working_dir: /app
     depends_on:
-      - postgis
+      postgis:
+        condition: service_healthy
     ports:
       - "5800:5000"
     volumes:
       - ./python:/app
     command: >
-      /bin/bash -c "apt-get update && apt-get install -y python3 python3-pip python3-venv libegl1 libsm6 libxext6 libxrender-dev libgl1-mesa-glx libglib2.0-0 && rm -rf /var/lib/apt/lists/* && pip install -r requirements2.txt && python app2.py"
+      /bin/bash -c " apt-get update && apt-get install -y libgl1 libglib2.0-0 && rm -rf /var/lib/apt/lists/* && pip install --upgrade pip && pip install -r requirements.txt && python app.py"
