@@ -26,7 +26,7 @@ services:
       postgis:
         condition: service_healthy
     ports:
-      - "5800:5000"
+      - "5100:5000"
     volumes:
       - ./python:/app
     command: >
