@@ -87,6 +87,15 @@
             transform: translate(-50%, 50%);
             color: rgb(5, 5, 5);
             font-weight: bold;
+            text-shadow:
+                -1px -1px 0 #fff,
+                /* Top left */
+                1px -1px 0 #fff,
+                /* Top right */
+                -1px 1px 0 #fff,
+                /* Bottom left */
+                1px 1px 0 #fff;
+            /* Bottom right */
         }
 
         @keyframes pulsate {
@@ -394,25 +403,25 @@
                     let color;
                     // Determine color based on skyValue range
                     if (skyValue >= 0 && skyValue < 10) {
-                        color = '#B22222';
+                        color = '#FFFF00';
                     } else if (skyValue >= 10 && skyValue < 20) {
-                        color = '#B22222'; // 10-20
+                        color = '#FFFF00'; // 10-20
                     } else if (skyValue >= 20 && skyValue < 30) {
-                        color = '#B22222'; // 20-30
+                        color = '#FFFF00'; // 20-30
                     } else if (skyValue >= 30 && skyValue < 40) {
-                        color = '#B22222'; // 30-40
+                        color = '#FFFF00'; // 30-40
                     } else if (skyValue >= 40 && skyValue < 50) {
-                        color = '#B22222'; // 40-50
+                        color = '#FFFF00'; // 40-50
                     } else if (skyValue >= 50 && skyValue < 60) {
-                        color = '#B22222'; // 50-60
+                        color = '#FFFF00'; // 50-60
                     } else if (skyValue >= 60 && skyValue < 70) {
-                        color = '#B22222'; // 60-70
+                        color = '#FFFF00'; // 60-70
                     } else if (skyValue >= 70 && skyValue < 80) {
-                        color = '#B22222'; // 70-80
+                        color = '#FFFF00'; // 70-80
                     } else if (skyValue >= 80 && skyValue < 90) {
-                        color = '#B22222'; // 80-90
+                        color = '#FFFF00'; // 80-90
                     } else if (skyValue >= 90 && skyValue <= 100) {
-                        color = '#B22222'; // 90-100
+                        color = '#FFFF00'; // 90-100
                     } else {
                         color = '#070707';
                     }
