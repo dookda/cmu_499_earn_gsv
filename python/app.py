@@ -125,10 +125,10 @@ def homenewvido():
         return "Video not found", 404
 
 # หน้า sumdeep
-@app.route("/gsv/sumdeep")
-def sumdeep():
-    """Render the new homepage."""
-    return render_template('indexsumdeep.html')
+# @app.route("/gsv/sumdeep")
+# def sumdeep():
+#     """Render the new homepage."""
+#     return render_template('indexsumdeep.html')
 
 @app.route('/gsv/img/sumdeep1')
 def sumdeep1():
@@ -139,23 +139,23 @@ def sumdeep1():
     else:
         return "Image not found", 404
 
-@app.route('/gsv/img/sumdeep2')
-def sumdeep2():
-    """Serve a specific image."""
-    img_path = './homenew/2sumdeep.jpg'
-    if os.path.exists(img_path):
-        return send_file(img_path, mimetype='image/jpeg')
-    else:
-        return "Image not found", 404
+# @app.route('/gsv/img/sumdeep2')
+# def sumdeep2():
+#     """Serve a specific image."""
+#     img_path = './homenew/2sumdeep.jpg'
+#     if os.path.exists(img_path):
+#         return send_file(img_path, mimetype='image/jpeg')
+#     else:
+#         return "Image not found", 404
 
-@app.route('/gsv/img/sumdeep3')
-def sumdeep3():
-    """Serve a specific image."""
-    img_path = './homenew/3sumdeep.jpg'
-    if os.path.exists(img_path):
-        return send_file(img_path, mimetype='image/jpeg')
-    else:
-        return "Image not found", 404
+# @app.route('/gsv/img/sumdeep3')
+# def sumdeep3():
+#     """Serve a specific image."""
+#     img_path = './homenew/3sumdeep.jpg'
+#     if os.path.exists(img_path):
+#         return send_file(img_path, mimetype='image/jpeg')
+#     else:
+#         return "Image not found", 404
 
 # หน้า sumco
 @app.route("/gsv/sumco")
@@ -193,22 +193,22 @@ def static1(filename):
     return send_from_directory('static1', filename)
 
 # TVF ขอบเขต
-@app.route("/gsv/maptvf")
-def maptvf():
-    return render_template('indexmaptvf.html')
+# @app.route("/gsv/maptvf")
+# def maptvf():
+#     return render_template('indexmaptvf.html')
 
-@app.route('/gsv/static1/<path:filename>')
-def static2(filename):
-    return send_from_directory('static1', filename)
+# @app.route('/gsv/static1/<path:filename>')
+# def static2(filename):
+#     return send_from_directory('static1', filename)
 
 # BVF ขอบเขต
-@app.route("/gsv/mapbvf")
-def mapbvf():
-    return render_template('indexmapbvf.html')
+# @app.route("/gsv/mapbvf")
+# def mapbvf():
+#     return render_template('indexmapbvf.html')
 
-@app.route('/gsv/static1/<path:filename>')
-def static3(filename):
-    return send_from_directory('static1', filename)
+# @app.route('/gsv/static1/<path:filename>')
+# def static3(filename):
+#     return send_from_directory('static1', filename)
 
 # หน้า co SVF TVF BVF
 @app.route("/gsv/svfco")

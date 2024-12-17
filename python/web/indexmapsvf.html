@@ -232,10 +232,10 @@
 
     <!-- Container -->
     <div class="container mx-auto p-4">
-        <h1 class="text-4xl font-bold mb-4 text-center">การจำแนกข้อมูลสัดส่วนการมองเห็นท้องฟ้า Sky View Factor (SVF)
+        <h1 class="text-4xl font-bold mb-4 text-center">การจำแนกข้อมูลจาก Google Street View (GSV)
         </h1>
         <p class="text-gray-700 leading-relaxed text-center">
-            Sky View Factor (SVF) data classification.
+            Classifying data from Google Street View (GSV).
         </p>
 
 
@@ -312,7 +312,7 @@
             attribution: '&copy; <a href="https://www.esri.com">Esri</a>'
         });
 
-        google_Terrain.addTo(map);
+        Esri_WorldImagery.addTo(map);
 
 
         const geoJsonLayer = L.layerGroup();
@@ -396,23 +396,23 @@
                     if (skyValue >= 0 && skyValue < 10) {
                         color = '#B22222';
                     } else if (skyValue >= 10 && skyValue < 20) {
-                        color = '#FF4500'; // 10-20
+                        color = '#B22222'; // 10-20
                     } else if (skyValue >= 20 && skyValue < 30) {
-                        color = '#FF7F00'; // 20-30
+                        color = '#B22222'; // 20-30
                     } else if (skyValue >= 30 && skyValue < 40) {
-                        color = '#ffbf49'; // 30-40
+                        color = '#B22222'; // 30-40
                     } else if (skyValue >= 40 && skyValue < 50) {
-                        color = '#FFFF00'; // 40-50
+                        color = '#B22222'; // 40-50
                     } else if (skyValue >= 50 && skyValue < 60) {
-                        color = '#ADFF2F'; // 50-60
+                        color = '#B22222'; // 50-60
                     } else if (skyValue >= 60 && skyValue < 70) {
-                        color = '#00FF00'; // 60-70
+                        color = '#B22222'; // 60-70
                     } else if (skyValue >= 70 && skyValue < 80) {
-                        color = '#00CED1'; // 70-80
+                        color = '#B22222'; // 70-80
                     } else if (skyValue >= 80 && skyValue < 90) {
-                        color = '#1E90FF'; // 80-90
+                        color = '#B22222'; // 80-90
                     } else if (skyValue >= 90 && skyValue <= 100) {
-                        color = '#0000FF'; // 90-100
+                        color = '#B22222'; // 90-100
                     } else {
                         color = '#070707';
                     }
