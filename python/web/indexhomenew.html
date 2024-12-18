@@ -219,19 +219,7 @@
             observer.observe(box);
         });
 
-        // JavaScript to handle loader visibility
-        videoPlayer.onload = function () {
-            loaderContainer.style.display = 'none';
-            videoPlayer.style.display = 'block';
-            videoPlayer.style.opacity = '1';
-        };
 
-        // แสดงข้อความแสดงข้อผิดพลาดหากวิดีโอไม่โหลด
-        setTimeout(() => {
-            if (videoPlayer.style.opacity === '0') {
-                loaderContainer.innerHTML = '<p>ไม่สามารถโหลดวิดีโอได้ โปรดตรวจสอบการเชื่อมต่ออินเทอร์เน็ตหรือ URL วิดีโอ</p>';
-            }
-        }, 5000);
     </script>
 </body>
 
