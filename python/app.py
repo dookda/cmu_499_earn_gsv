@@ -115,14 +115,14 @@ def homenew3():
     else:
         return "Image not found", 404
     
-@app.route('/gsv/vido')
-def homenewvido():
-    """Serve a specific video file."""
-    video_path = './homenew/Blue .mp4'  # เส้นทางของไฟล์วิดีโอ
-    if os.path.exists(video_path):
-        return send_file(video_path, mimetype='video/mp4')
-    else:
-        return "Video not found", 404
+# @app.route('/gsv/vido')
+# def homenewvido():
+#     """Serve a specific video file."""
+#     video_path = './homenew/Blue .mp4'  # เส้นทางของไฟล์วิดีโอ
+#     if os.path.exists(video_path):
+#         return send_file(video_path, mimetype='video/mp4')
+#     else:
+#         return "Video not found", 404
 
 # หน้า sumdeep
 # @app.route("/gsv/sumdeep")
