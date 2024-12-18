@@ -60,6 +60,10 @@ csp = {
     'connect-src': [
         '\'self\'',
         'https://api.waqi.info'  # Add API endpoint you want to connect to
+    ],
+    'frame-src': [
+        '\'self\'',
+        'https://www.youtube.com'  # Allow embedding from YouTube
     ]
 }
 
