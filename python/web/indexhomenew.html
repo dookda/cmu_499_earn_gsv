@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>blue sky town</title>
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self'; script-src 'self' 'nonce-random123';">
+        content="default-src 'self'; media-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; script-src 'self' 'nonce-random123';">
     <link rel="icon" href="/gsv/imggolo/logo" type="image/x-icon">
     <!-- Link to Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
@@ -136,7 +136,7 @@
                 <div class="loader"></div>
             </div>
             <video id="video-player" class="w-full h-auto rounded-video" autoplay muted playsinline loop preload="auto">
-                <source src="{{ url_for('homenewvido') }}" type="video/mp4">
+                <source src="/gsv/vido" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
         </div>
@@ -220,10 +220,12 @@
         const loaderContainer = document.getElementById('loader-container');
 
         videoPlayer.addEventListener('canplay', function () {
+            console.log("Video is ready to play");
             loaderContainer.style.display = 'none';
             videoPlayer.style.display = 'block';
-            videoPlayer.style.opacity = '1'; // Fade-in effect
+            videoPlayer.style.opacity = '1';
         });
+
     </script>
 </body>
 
