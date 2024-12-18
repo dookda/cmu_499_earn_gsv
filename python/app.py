@@ -118,10 +118,10 @@ def homenew3():
 @app.route('/gsv/vido')
 def homenewvido():
     """Serve a specific video file."""
-    video_path = os.path.join(app.root_path, 'homenew', 'Blue.mp4')  # เส้นทางของไฟล์วิดีโอ
+    video_path = './homenew/Blue.mp4'  # เส้นทางของไฟล์วิดีโอ
     print(video_path)
     if os.path.exists(video_path):
-        return send_file(video_path, mimetype='video/mp4', as_attachment=True)
+        return send_file(video_path, mimetype='video/mp4')
     else:
         return "Video not found", 404
 
