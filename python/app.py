@@ -115,7 +115,7 @@ def homenew3():
     else:
         return "Image not found", 404
     
-@app.route('/gsv/vido')
+@app.route('/gsv/video')
 def homenewvido():
     video_path = os.path.abspath('./homenew/video.mp4')
     print(f"Looking for file: {video_path}")
