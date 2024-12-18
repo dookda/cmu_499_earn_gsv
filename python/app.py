@@ -139,23 +139,23 @@ def sumdeep1():
     else:
         return "Image not found", 404
 
-# @app.route('/gsv/img/sumdeep2')
-# def sumdeep2():
-#     """Serve a specific image."""
-#     img_path = './homenew/2sumdeep.jpg'
-#     if os.path.exists(img_path):
-#         return send_file(img_path, mimetype='image/jpeg')
-#     else:
-#         return "Image not found", 404
+@app.route('/gsv/img/sumdeep2')
+def sumdeep2():
+    """Serve a specific image."""
+    img_path = './homenew/2sumdeep.jpg'
+    if os.path.exists(img_path):
+        return send_file(img_path, mimetype='image/jpeg')
+    else:
+        return "Image not found", 404
 
-# @app.route('/gsv/img/sumdeep3')
-# def sumdeep3():
-#     """Serve a specific image."""
-#     img_path = './homenew/3sumdeep.jpg'
-#     if os.path.exists(img_path):
-#         return send_file(img_path, mimetype='image/jpeg')
-#     else:
-#         return "Image not found", 404
+@app.route('/gsv/img/sumdeep3')
+def sumdeep3():
+    """Serve a specific image."""
+    img_path = './homenew/3sumdeep.jpg'
+    if os.path.exists(img_path):
+        return send_file(img_path, mimetype='image/jpeg')
+    else:
+        return "Image not found", 404
 
 # หน้า sumco
 @app.route("/gsv/sumco")
