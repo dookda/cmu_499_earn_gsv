@@ -90,6 +90,15 @@
                 background-size: 120% 120%;
             }
         }
+
+        .video-square {
+            aspect-ratio: 1 / 1;
+            /* กำหนดให้เป็นสี่เหลี่ยมจัตุรัส */
+            width: 100%;
+            /* ขยายให้เต็มความกว้างของ container */
+            border-radius: 10px;
+            /* ใช้ rounded-video สำหรับมุมโค้ง */
+        }
     </style>
 </head>
 
@@ -131,12 +140,8 @@
         </p>
 
         <div class="container mx-auto p-4 max-w-5xl">
-            <!-- <div id="loader-container" class="text-center mb-4">
-                <div class="loader"></div>
-            </div> -->
-            <iframe id="video-player" class="w-full h-auto rounded-video"
-                src="https://www.youtube.com/embed/g3TJrqIIjtk" frameborder="0" allow="autoplay; encrypted-media"
-                allowfullscreen></iframe>
+            <iframe id="video-player" class="video-square rounded-video" src="https://www.youtube.com/embed/g3TJrqIIjtk"
+                frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
         </div>
 
 
