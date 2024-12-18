@@ -118,7 +118,7 @@ def homenew3():
 @app.route('/gsv/vido')
 def homenewvido():
     """Serve a specific video file."""
-    video_path = os.path.join(os.path.dirname(__file__), 'homenew', 'Blue .mp4')
+    video_path = './homenew/static/SVF.mp4'  # เส้นทางของไฟล์วิดีโอ
     if os.path.exists(video_path):
         return send_file(video_path, mimetype='video/mp4')
     else:
