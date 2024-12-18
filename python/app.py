@@ -118,12 +118,9 @@ def homenew3():
 @app.route('/gsv/vido')
 def homenewvido():
     """Serve a specific video file."""
-    video_path = './homenew/Blue .mp4'  
+    video_path = './homenew/Blue .mp4'  # เส้นทางของไฟล์วิดีโอ
     if os.path.exists(video_path):
-        response = send_file(video_path, mimetype='video/mp4')
-        response.cache_control.public = True  
-        response.cache_control.max_age = 3600  
-        return response
+        return send_file(video_path, mimetype='video/mp4')
     else:
         return "Video not found", 404
 
