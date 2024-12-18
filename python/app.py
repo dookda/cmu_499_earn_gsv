@@ -115,11 +115,11 @@ def homenew3():
     else:
         return "Image not found", 404
     
-@app.route('/gsv/vido')
+@app.route('/gsv/video')  # Route ที่ใช้สำหรับวิดีโอ
 def homenewvido():
     """Serve a specific video file."""
     video_path = './homenew/Blue.mp4'  # เส้นทางของไฟล์วิดีโอ
-    print(video_path)
+    print(f"Looking for video at: {os.path.abspath(video_path)}")
     if os.path.exists(video_path):
         return send_file(video_path, mimetype='video/mp4')
     else:
