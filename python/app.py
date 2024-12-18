@@ -117,12 +117,14 @@ def homenew3():
     
 @app.route('/gsv/vido')
 def homenewvido():
-    """Serve a specific video file."""
-    video_path = './homenew/static/SVF.mp4'  # เส้นทางของไฟล์วิดีโอ
+    video_path = os.path.join(app.root_path, 'static', 'SVF.mp4')
     if os.path.exists(video_path):
+        app.logger.info(f"Serving video from {video_path}")
         return send_file(video_path, mimetype='video/mp4')
     else:
+        app.logger.error(f"Video not found at {video_path}")
         return "Video not found", 404
+
 
 # หน้า sumdeep
 # @app.route("/gsv/sumdeep")
