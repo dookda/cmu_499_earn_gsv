@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>blue sky town</title>
     <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; media-src 'self'; style-src 'self' 'unsafe-inline' ... script-src 'self' 'nonce-random123';">
+        content="default-src 'self'; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; style-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; img-src 'self'; script-src 'self' 'nonce-random123';">
     <link rel="icon" href="/gsv/imggolo/logo" type="image/x-icon">
     <!-- Link to Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
@@ -144,7 +144,7 @@
 
         <!-- Responsive Grid Layout -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-            <a href="/gsv/sumdeep">
+            <a href="/gsv/mapsvf">
                 <div class="bg-white p-6 rounded-lg shadow flex flex-col items-center box">
                     <img src="/gsv/img/homenew1" alt="Box 1 Image" class="w-full h-80 object-cover mb-4 rounded">
                     <h2 class="text-2xl font-bold mb-2 text-center">การจำแนกข้อมูล <br>จาก Google Street View (GSV)</h2>
@@ -189,10 +189,6 @@
         document.getElementById('menu-toggle').addEventListener('click', function () {
             const menu = document.getElementById('dropdown-menu');
             menu.classList.toggle('show');
-        });
-        document.getElementById('video-player').addEventListener('ended', function () {
-            this.currentTime = 0;
-            this.play();
         });
 
         // Slide-in effect for boxes
