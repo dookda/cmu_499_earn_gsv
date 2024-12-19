@@ -55,6 +55,7 @@ csp = {
         'https://mt1.google.com',
         'https://server.arcgisonline.com',
         'https://api.mapbox.com',
+        'https://i.ytimg.com',  # Add YouTube image CDN
         'data:'
     ],
     'connect-src': [
@@ -66,6 +67,7 @@ csp = {
         'https://www.youtube.com'  # Allow embedding from YouTube
     ]
 }
+
 
 talisman = Talisman(app, content_security_policy=csp)
 
